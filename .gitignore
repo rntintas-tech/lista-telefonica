@@ -1,0 +1,26 @@
+/build
+/dist
+/venv
+__pycache__
+*.pyc
+.DS_Store
+node_modules
+.env
+.vscode
+logs
+*.log
+.idea
+*.iml
+coverage
+*.sqlite3
+*.db
+*.bak
+*.swp
+thumbs.db
+*.class
+*.jar
+*.exe
+/abrir_lista.py
+/icone.ico
+/Lista Telefônica RN.spec
+/Lista Telefônica RN.url
