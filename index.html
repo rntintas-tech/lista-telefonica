@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista Telefônica - RN Tintas</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- ===== HEADER ===== -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-container">
+                <div class="logo"></div>
+            </div>
+            
+            <div class="title-wrapper">
+                <h1>Lista Telefônica</h1>
+                <div class="header-subtitle">RN Tintas - Comunicação Interna</div>
+            </div>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <i class="bi bi-info-circle-fill" style="color: #ff6b35;"></i>
+                    <span>Atribuições</span>
+                </div>
+                <div class="legend-item">
+                    <i class="bi bi-envelope-fill" style="color: #667eea;"></i>
+                    <span>E-mail</span>
+                </div>
+                <div class="legend-item">
+                    <i class="bi bi-clipboard-fill" style="color: #667eea;"></i>
+                    <span>Copiar</span>
+                </div>
+                <div class="legend-item">
+                    <i class="bi bi-whatsapp" style="color: #25d366;"></i>
+                    <span>WhatsApp</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===== CONTEÚDO PRINCIPAL ===== -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Campo de pesquisa -->
+            <div class="search-box">
+                <div class="search-header">
+                    <div class="search-title">
+                        <i class="bi bi-search"></i>
+                        Buscar contato
+                    </div>
+                    <div class="results-count" id="resultsCount">0 contatos</div>
+                </div>
+                <div class="search-wrapper">
+                    <i class="bi bi-search search-icon"></i>
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        class="search-input" 
+                        placeholder="Digite o nome, departamento ou telefone..."
+                        autocomplete="off"
+                    >
+                    <button class="clear-search" id="clearSearch">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loading -->
+            <div id="loading">
+                <div class="spinner"></div>
+                <h3>Carregando contatos...</h3>
+                <p>Aguarde enquanto buscamos os dados da planilha</p>
+            </div>
+
+            <!-- Erro -->
+            <div id="error"></div>
+
+            <!-- Sem resultados -->
+            <div id="noResults">
+                <i class="bi bi-search"></i>
+                <h3>Nenhum contato encontrado</h3>
+                <p>Tente buscar por outro nome, departamento ou número</p>
+            </div>
+
+            <!-- Cards dos departamentos -->
+            <div class="cards-container" id="cardsContainer"></div>
+        </div>
+    </main>
+
+    <!-- ===== MODAL DE ATRIBUIÇÕES ===== -->
+    <div class="modal-overlay" id="modalAtribuicoes" onclick="fecharModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="bi bi-info-circle-fill"></i>
+                    <span id="modalNome">Informações</span>
+                </div>
+                <button class="modal-close" onclick="fecharModal()">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-info">
+                    <div class="info-row">
+                        <i class="bi bi-telephone-fill info-icon"></i>
+                        <div class="info-content">
+                            <div class="info-label">Telefone</div>
+                            <div class="info-value" id="modalTelefone">-</div>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <i class="bi bi-list-check info-icon"></i>
+                        <div class="info-content">
+                            <div class="info-label">Atribuições</div>
+                            <div class="info-value" id="modalAtribuicoesTexto">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODAL DE EMAIL ===== -->
+    <div class="modal-overlay" id="modalEmail" onclick="fecharModalEmail(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="bi bi-envelope-fill"></i>
+                    <span id="modalEmailNome">E-mail</span>
+                </div>
+                <button class="modal-close" onclick="fecharModalEmail()">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-info">
+                    <div class="info-row">
+                        <i class="bi bi-person-fill info-icon"></i>
+                        <div class="info-content">
+                            <div class="info-label">Nome</div>
+                            <div class="info-value" id="modalEmailNomeCompleto">-</div>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <i class="bi bi-envelope-fill info-icon"></i>
+                        <div class="info-content">
+                            <div class="info-label">E-mail</div>
+                            <div class="info-value" id="modalEmailTexto">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="#" class="footer-link">
+                    <i class="bi bi-telephone-fill"></i>
+                    Suporte Técnico
+                </a>
+                <a href="#" class="footer-link">
+                    <i class="bi bi-envelope-fill"></i>
+                    Contato TI
+                </a>
+                <a href="#" class="footer-link">
+                    <i class="bi bi-question-circle-fill"></i>
+                    Ajuda
+                </a>
+            </div>
+            <div class="footer-divider"></div>
+            <div class="footer-copy">
+                © 2025 RN Tintas - Lista Telefônica Interna
+            </div>
+        </div>
+    </footer>
+    <script src="scripts.js"></script>
+</body>
+</html>
