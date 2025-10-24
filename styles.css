@@ -1,4 +1,3 @@
-
 :root {
     /* Cores da RN */
     --primary-color: #001564;
@@ -14,6 +13,7 @@
     --border-color: #dee2e6;
     --success-color: #28a745;
     --phone-color: #0088cc;
+    --call-color: #28a745; /* 📱 Verde para botão ligar */
 }
 
 * {
@@ -378,7 +378,7 @@ body::before {
     transform: translateY(-2px);
 }
 
-/* 📧 BOTÃO EMAIL COM DEGRADÊ ROXO */
+/* 📧 BOTÃO EMAIL COM DEGRADÊ AZUL/ROXO */
 .email-btn {
     background: linear-gradient(135deg, #667eea, #764ba2);
     color: var(--white);
@@ -396,6 +396,17 @@ body::before {
 
 .copy-btn:hover {
     background: var(--primary-color-dark);
+    transform: translateY(-2px);
+}
+
+/* 📱 BOTÃO LIGAR (mobile) */
+.call-btn {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: var(--white);
+}
+
+.call-btn:hover {
+    background: linear-gradient(135deg, #218838, #17a2b8);
     transform: translateY(-2px);
 }
 
@@ -658,63 +669,269 @@ body::before {
     white-space: pre-wrap;
 }
 
-/* ===== RESPONSIVIDADE ===== */
+/* ===== RESPONSIVIDADE MOBILE ===== */
 @media (max-width: 768px) {
+    /* 📱 HEADER MOBILE */
+    .header {
+        padding: 15px;
+    }
+    
     .header h1 {
-        font-size: 1.6em;
+        font-size: 1.4em;
     }
     
     .header-subtitle {
-        font-size: 0.85em;
+        font-size: 0.75em;
     }
     
     .logo {
-        width: 70px;
-        height: 70px;
+        width: 55px;
+        height: 55px;
     }
     
     .legend {
-        font-size: 0.75em;
-        gap: 10px;
-    }
-
-    .cards-container {
-        grid-template-columns: 1fr;
-    }
-    
-    .person-item {
-        flex-wrap: wrap;
+        font-size: 0.7em;
         gap: 8px;
     }
-
-    .person-name {
-        min-width: 100%;
-        order: 1;
-    }
-
-    .phone-number {
-        min-width: auto;
-        order: 2;
+    
+    .legend-item {
+        padding: 3px 8px;
     }
 
-    .action-btn {
-        order: 3;
-    }
-    
-    .department-header {
-        font-size: 1.1em;
-        padding: 12px 15px;
-    }
-    
-    .search-input {
-        padding: 12px 45px 12px 45px;
-        font-size: 0.95em;
-    }
-    
     .header-content {
         grid-template-areas: 
             "logo title"
             "legend legend";
         grid-template-columns: auto 1fr;
+        gap: 10px;
+    }
+
+    /* 📱 CAMPO DE PESQUISA MOBILE */
+    .search-box {
+        position: sticky;
+        top: 110px;
+        padding: 12px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+    }
+
+    .search-header {
+        margin-bottom: 10px;
+    }
+
+    .search-title {
+        font-size: 0.75em;
+    }
+
+    .results-count {
+        font-size: 0.7em;
+        padding: 3px 8px;
+    }
+    
+    .search-input {
+        padding: 12px 40px 12px 40px;
+        font-size: 16px;
+        border-radius: 8px;
+    }
+
+    .search-icon {
+        font-size: 1em;
+        left: 14px;
+    }
+
+    .clear-search {
+        right: 10px;
+        width: 24px;
+        height: 24px;
+    }
+
+    /* 📱 CARDS MOBILE */
+    .cards-container {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .department-card {
+        border-radius: 8px;
+    }
+    
+    .department-header {
+        font-size: 0.9em;
+        padding: 10px 12px;
+    }
+
+    .people-list {
+        max-height: none;
+    }
+    
+    /* 📱 LAYOUT COMPACTO - 2 LINHAS */
+    .person-item {
+        padding: 7px 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        align-items: baseline;
+    }
+
+    /* Linha 1: Nome + Telefone lado a lado */
+    .person-name {
+        order: 1;
+        font-size: 0.8em;
+        font-weight: 600;
+        min-width: auto;
+        line-height: 1.3;
+        margin-right: 6px;
+    }
+
+    .phone-number {
+        order: 2;
+        font-size: 0.75em;
+        min-width: auto;
+        padding-top: 0;
+        line-height: 1.3;
+    }
+
+    /* Linha 2: Botões (forçar para próxima linha) */
+    .action-btn,
+    a.action-btn {
+        order: 3;
+        flex: 0 0 30px;
+        height: 30px;
+        padding: 5px;
+        font-size: 0.8em;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Quebra de linha antes dos botões */
+    .person-item::after {
+        content: "";
+        order: 2.5;
+        flex-basis: 100%;
+        height: 0;
+    }
+
+    .action-btn i {
+        font-size: 1em;
+    }
+
+    /* 📱 MODAIS MOBILE */
+    .modal-content {
+        max-width: 95%;
+        margin: 10px;
+        border-radius: 16px;
+    }
+
+    .modal-header {
+        padding: 20px 20px;
+        border-radius: 16px 16px 0 0;
+    }
+
+    .modal-title {
+        font-size: 1.1em;
+        gap: 10px;
+    }
+
+    .modal-close {
+        width: 32px;
+        height: 32px;
+        font-size: 1.2em;
+    }
+
+    .modal-body {
+        padding: 20px;
+    }
+
+    .info-row {
+        gap: 12px;
+    }
+
+    .info-icon {
+        font-size: 1.3em;
+    }
+
+    .info-label {
+        font-size: 0.75em;
+    }
+
+    .info-value {
+        font-size: 0.95em;
+    }
+
+    /* 📱 LOADING E ERROR MOBILE */
+    #loading, #error {
+        padding: 40px 15px;
+        margin: 15px;
+        border-radius: 12px;
+    }
+
+    #loading h3, #error h3 {
+        font-size: 1.1em;
+    }
+
+    #loading p, #error p {
+        font-size: 0.9em;
+    }
+
+    .spinner {
+        width: 50px;
+        height: 50px;
+    }
+
+    /* 📱 FOOTER MOBILE */
+    .footer {
+        padding: 20px 15px;
+    }
+
+    .footer-links {
+        gap: 20px;
+        font-size: 0.85em;
+    }
+
+    .footer-copy {
+        font-size: 0.75em;
+    }
+
+    /* 📱 NO RESULTS MOBILE */
+    #noResults {
+        padding: 40px 15px;
+        border-radius: 12px;
+    }
+
+    #noResults i {
+        font-size: 2.5em;
+    }
+
+    #noResults h3 {
+        font-size: 1.1em;
+    }
+
+    #noResults p {
+        font-size: 0.9em;
+    }
+}
+
+/* 📱 AJUSTES EXTRAS PARA TELAS MUITO PEQUENAS */
+@media (max-width: 375px) {
+    .header h1 {
+        font-size: 1.3em;
+    }
+
+    .logo {
+        width: 50px;
+        height: 50px;
+    }
+
+    .action-btn {
+        padding: 8px 12px;
+        font-size: 0.95em;
+        min-width: 20px;
+        min-height: 20px;
+    }
+
+    .search-input {
+        padding: 12px 40px 12px 40px;
     }
 }

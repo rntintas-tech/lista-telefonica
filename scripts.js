@@ -1,4 +1,3 @@
-
 // ID da planilha
 const SHEET_ID = '1ocVVhfY4-B8LSMhPfSrJfwFPUvlVSo3-l5KYLs9Z8zs';
 
@@ -6,11 +5,17 @@ let departamentos = {};
 let todosRamais = [];
 let ordemGrupos = {};
 
-// ===== FUNÇÕES DO MODAL DE ATRIBUIÇÕES =====
-function abrirModal(nome, telefone, atribuicoes) {
+// ===== DETECTAR SE É MOBILE =====
+function isMobile() {
+    return window.innerWidth <= 768;
+}
+
+// ===== FUNÇÕES DO MODAL DE INFORMAÇÕES (atribuições + email) =====
+function abrirModal(nome, telefone, atribuicoes, email) {
     document.getElementById('modalNome').textContent = nome;
     document.getElementById('modalTelefone').textContent = telefone;
     document.getElementById('modalAtribuicoesTexto').textContent = atribuicoes || 'Sem atribuições cadastradas';
+    document.getElementById('modalEmail').textContent = email || 'E-mail não cadastrado';
     document.getElementById('modalAtribuicoes').classList.add('active');
     document.body.style.overflow = 'hidden';
 }
@@ -22,27 +27,10 @@ function fecharModal(event) {
     }
 }
 
-// ===== FUNÇÕES DO MODAL DE EMAIL =====
-function abrirModalEmail(nome, email) {
-    document.getElementById('modalEmailNome').textContent = nome;
-    document.getElementById('modalEmailNomeCompleto').textContent = nome;
-    document.getElementById('modalEmailTexto').textContent = email || 'E-mail não cadastrado';
-    document.getElementById('modalEmail').classList.add('active');
-    document.body.style.overflow = 'hidden';
-}
-
-function fecharModalEmail(event) {
-    if (!event || event.target === event.currentTarget) {
-        document.getElementById('modalEmail').classList.remove('active');
-        document.body.style.overflow = 'auto';
-    }
-}
-
 // Fechar modal com ESC
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         fecharModal();
-        fecharModalEmail();
     }
 });
 
@@ -177,29 +165,26 @@ function renderizarCards(deps) {
         return ordemA - ordemB;
     });
     
+    // 📱 Verificar se é mobile
+    const mobile = isMobile();
+    
     container.innerHTML = depsOrdenados.map(([dept, pessoas]) => {
         const pessoasHtml = pessoas.map(pessoa => {
             const telefoneNumeros = pessoa.telefone.replace(/\D/g, '');
             
-            // Botão de informações (só aparece se tiver atribuições) - COM DEGRADÊ LARANJA
-            const infoBtn = pessoa.atribuicoes
-                ? `<button 
-                        onclick="abrirModal('${pessoa.nome.replace(/'/g, "\\'")}', '${pessoa.telefone}', '${pessoa.atribuicoes.replace(/'/g, "\\'").replace(/\n/g, '\\n')}')"
-                        class="action-btn info-btn"
-                        title="Ver atribuições">
-                        <i class="bi bi-info-circle"></i>
-                    </button>`
-                : '';
+            // Botão de informações (sempre aparece, mostra atribuições + email)
+            // Ícone e cor mudam: email azul quando só tem email, info laranja quando tem atribuições
+            const temAtribuicoes = pessoa.atribuicoes && pessoa.atribuicoes.trim();
+            const icone = temAtribuicoes ? 'bi-info-circle' : 'bi-envelope';
+            const titulo = temAtribuicoes ? 'Ver informações' : 'Ver e-mail';
+            const classeBtn = temAtribuicoes ? 'info-btn' : 'email-btn';
             
-            // 📧 Botão de EMAIL (só aparece se tiver email)
-            const emailBtn = pessoa.email
-                ? `<button 
-                        onclick="abrirModalEmail('${pessoa.nome.replace(/'/g, "\\'")}', '${pessoa.email.replace(/'/g, "\\'")}')"
-                        class="action-btn email-btn"
-                        title="Ver e-mail">
-                        <i class="bi bi-envelope"></i>
-                    </button>`
-                : '';
+            const infoBtn = `<button 
+                    onclick="abrirModal('${pessoa.nome.replace(/'/g, "\\'")}', '${pessoa.telefone}', '${(pessoa.atribuicoes || '').replace(/'/g, "\\'").replace(/\n/g, '\\n')}', '${(pessoa.email || '').replace(/'/g, "\\'")}')"
+                    class="action-btn ${classeBtn}"
+                    title="${titulo}">
+                    <i class="bi ${icone}"></i>
+                </button>`;
             
             // Botão do WhatsApp
             const whatsappBtn = pessoa.whatsapp === 'SIM' && telefoneNumeros
@@ -211,14 +196,20 @@ function renderizarCards(deps) {
                     </a>`
                 : '';
             
-            // Botão de copiar (SEMPRE aparece se tiver telefone)
-            const copyBtn = telefoneNumeros
-                ? `<button 
-                        onclick="copiarNumero('${pessoa.telefone}')"
-                        class="action-btn copy-btn"
-                        title="Copiar número">
-                        <i class="bi bi-clipboard"></i>
-                    </button>`
+            // 📱 MOBILE: Botão de LIGAR | 💻 DESKTOP: Botão de COPIAR
+            const callOrCopyBtn = telefoneNumeros
+                ? (mobile 
+                    ? `<a href="tel:+55${telefoneNumeros}" 
+                            class="action-btn call-btn"
+                            title="Ligar">
+                            <i class="bi bi-telephone-fill"></i>
+                        </a>`
+                    : `<button 
+                            onclick="copiarNumero('${pessoa.telefone}')"
+                            class="action-btn copy-btn"
+                            title="Copiar número">
+                            <i class="bi bi-clipboard"></i>
+                        </button>`)
                 : '';
             
             return `
@@ -226,8 +217,7 @@ function renderizarCards(deps) {
                     <div class="person-name">${pessoa.nome}</div>
                     <div class="phone-number">${pessoa.telefone}</div>
                     ${infoBtn}
-                    ${emailBtn}
-                    ${copyBtn}
+                    ${callOrCopyBtn}
                     ${whatsappBtn}
                 </div>
             `;
@@ -299,6 +289,11 @@ function configurarPesquisa() {
         searchInput.focus();
     });
 }
+
+// Re-renderizar ao redimensionar (trocar entre copiar/ligar)
+window.addEventListener('resize', () => {
+    renderizarCards(departamentos);
+});
 
 // Iniciar
 carregarRamais();

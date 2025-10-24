@@ -23,15 +23,15 @@
             <div class="legend">
                 <div class="legend-item">
                     <i class="bi bi-info-circle-fill" style="color: #ff6b35;"></i>
-                    <span>Atribuições</span>
+                    <span>Info</span>
                 </div>
                 <div class="legend-item">
                     <i class="bi bi-envelope-fill" style="color: #667eea;"></i>
                     <span>E-mail</span>
                 </div>
                 <div class="legend-item">
-                    <i class="bi bi-clipboard-fill" style="color: #667eea;"></i>
-                    <span>Copiar</span>
+                    <i class="bi bi-clipboard-fill" style="color: #001564;"></i>
+                    <span>Copiar/Ligar</span>
                 </div>
                 <div class="legend-item">
                     <i class="bi bi-whatsapp" style="color: #25d366;"></i>
@@ -90,7 +90,7 @@
         </div>
     </main>
 
-    <!-- ===== MODAL DE ATRIBUIÇÕES ===== -->
+    <!-- ===== MODAL DE INFORMAÇÕES (atribuições + email) ===== -->
     <div class="modal-overlay" id="modalAtribuicoes" onclick="fecharModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
@@ -112,43 +112,17 @@
                         </div>
                     </div>
                     <div class="info-row">
+                        <i class="bi bi-envelope-fill info-icon"></i>
+                        <div class="info-content">
+                            <div class="info-label">E-mail</div>
+                            <div class="info-value" id="modalEmail">-</div>
+                        </div>
+                    </div>
+                    <div class="info-row">
                         <i class="bi bi-list-check info-icon"></i>
                         <div class="info-content">
                             <div class="info-label">Atribuições</div>
                             <div class="info-value" id="modalAtribuicoesTexto">-</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ===== MODAL DE EMAIL ===== -->
-    <div class="modal-overlay" id="modalEmail" onclick="fecharModalEmail(event)">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <div class="modal-title">
-                    <i class="bi bi-envelope-fill"></i>
-                    <span id="modalEmailNome">E-mail</span>
-                </div>
-                <button class="modal-close" onclick="fecharModalEmail()">
-                    <i class="bi bi-x"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="modal-info">
-                    <div class="info-row">
-                        <i class="bi bi-person-fill info-icon"></i>
-                        <div class="info-content">
-                            <div class="info-label">Nome</div>
-                            <div class="info-value" id="modalEmailNomeCompleto">-</div>
-                        </div>
-                    </div>
-                    <div class="info-row">
-                        <i class="bi bi-envelope-fill info-icon"></i>
-                        <div class="info-content">
-                            <div class="info-label">E-mail</div>
-                            <div class="info-value" id="modalEmailTexto">-</div>
                         </div>
                     </div>
                 </div>
