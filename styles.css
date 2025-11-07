@@ -5,7 +5,7 @@
     --secondary-color: #0088cc;
     --primary-gradient: linear-gradient(135deg, #3a7bd5, #00d2ff);
     --secondary-gradient: linear-gradient(135deg, #001564, #0088cc);
-    --orange-gradient: linear-gradient(135deg, #ff6b35, #f7931e); /* 🎨 Degradê laranja */
+    --orange-gradient: linear-gradient(135deg, #ff6b35, #f7931e);
     --white: #ffffff;
     --light-bg: #f8f9fa;
     --text-color: #333333;
@@ -13,7 +13,7 @@
     --border-color: #dee2e6;
     --success-color: #28a745;
     --phone-color: #0088cc;
-    --call-color: #28a745; /* 📱 Verde para botão ligar */
+    --call-color: #28a745;
 }
 
 * {
@@ -118,7 +118,6 @@ body::before {
     font-weight: 300;
 }
 
-/* Legenda dos ícones - agora em baixo */
 .legend {
     grid-area: legend;
     display: flex;
@@ -149,7 +148,6 @@ body::before {
     font-size: 1.2em;
 }
 
-/* Container principal - cresce para empurrar footer para baixo */
 .main-content {
     flex: 1;
 }
@@ -297,7 +295,6 @@ body::before {
     overflow-y: auto;
 }
 
-/* Scrollbar customizada */
 .people-list::-webkit-scrollbar {
     width: 8px;
 }
@@ -367,7 +364,6 @@ body::before {
     margin-top: 1px;
 }
 
-/* 🎨 BOTÃO INFO COM DEGRADÊ LARANJA CHAMATIVO */
 .info-btn {
     background: var(--orange-gradient);
     color: var(--white);
@@ -378,7 +374,6 @@ body::before {
     transform: translateY(-2px);
 }
 
-/* 📧 BOTÃO EMAIL COM DEGRADÊ AZUL/ROXO */
 .email-btn {
     background: linear-gradient(135deg, #667eea, #764ba2);
     color: var(--white);
@@ -399,7 +394,6 @@ body::before {
     transform: translateY(-2px);
 }
 
-/* 📱 BOTÃO LIGAR (mobile) */
 .call-btn {
     background: linear-gradient(135deg, #28a745, #20c997);
     color: var(--white);
@@ -420,7 +414,6 @@ body::before {
     transform: translateY(-2px);
 }
 
-/* ===== ESTADOS DE CARREGAMENTO ===== */
 #loading, #error {
     text-align: center;
     padding: 60px 20px;
@@ -494,7 +487,6 @@ body::before {
     margin-bottom: 15px;
 }
 
-/* ===== FOOTER MODERNIZADO ===== */
 .footer {
     background: linear-gradient(135deg, rgba(0, 21, 100, 0.95), rgba(0, 136, 204, 0.95));
     color: var(--white);
@@ -546,7 +538,6 @@ body::before {
     opacity: 0.8;
 }
 
-/* ===== MODAL MODERNIZADO ===== */
 .modal-overlay {
     display: none;
     position: fixed;
@@ -669,9 +660,39 @@ body::before {
     white-space: pre-wrap;
 }
 
+/* ===== TOAST NOTIFICATION ===== */
+.toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: var(--white);
+    padding: 15px 25px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(40, 167, 69, 0.4);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.95em;
+    font-weight: 500;
+    z-index: 9999;
+    opacity: 0;
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.toast i {
+    font-size: 1.3em;
+}
+
 /* ===== RESPONSIVIDADE MOBILE ===== */
 @media (max-width: 768px) {
-    /* 📱 HEADER MOBILE */
     .header {
         padding: 15px;
     }
@@ -706,7 +727,6 @@ body::before {
         gap: 10px;
     }
 
-    /* 📱 CAMPO DE PESQUISA MOBILE */
     .search-box {
         position: sticky;
         top: 110px;
@@ -745,7 +765,6 @@ body::before {
         height: 24px;
     }
 
-    /* 📱 CARDS MOBILE */
     .cards-container {
         grid-template-columns: 1fr;
         gap: 12px;
@@ -764,7 +783,6 @@ body::before {
         max-height: none;
     }
     
-    /* 📱 LAYOUT COMPACTO - 2 LINHAS */
     .person-item {
         padding: 7px 10px;
         display: flex;
@@ -773,7 +791,6 @@ body::before {
         align-items: baseline;
     }
 
-    /* Linha 1: Nome + Telefone lado a lado */
     .person-name {
         order: 1;
         font-size: 0.8em;
@@ -791,7 +808,6 @@ body::before {
         line-height: 1.3;
     }
 
-    /* Linha 2: Botões (forçar para próxima linha) */
     .action-btn,
     a.action-btn {
         order: 3;
@@ -805,7 +821,6 @@ body::before {
         justify-content: center;
     }
 
-    /* Quebra de linha antes dos botões */
     .person-item::after {
         content: "";
         order: 2.5;
@@ -817,7 +832,6 @@ body::before {
         font-size: 1em;
     }
 
-    /* 📱 MODAIS MOBILE */
     .modal-content {
         max-width: 95%;
         margin: 10px;
@@ -860,7 +874,6 @@ body::before {
         font-size: 0.95em;
     }
 
-    /* 📱 LOADING E ERROR MOBILE */
     #loading, #error {
         padding: 40px 15px;
         margin: 15px;
@@ -880,7 +893,6 @@ body::before {
         height: 50px;
     }
 
-    /* 📱 FOOTER MOBILE */
     .footer {
         padding: 20px 15px;
     }
@@ -894,7 +906,6 @@ body::before {
         font-size: 0.75em;
     }
 
-    /* 📱 NO RESULTS MOBILE */
     #noResults {
         padding: 40px 15px;
         border-radius: 12px;
@@ -911,9 +922,17 @@ body::before {
     #noResults p {
         font-size: 0.9em;
     }
+
+    /* Toast mobile */
+    .toast {
+        bottom: 20px;
+        padding: 12px 20px;
+        font-size: 0.85em;
+        border-radius: 10px;
+        max-width: 90%;
+    }
 }
 
-/* 📱 AJUSTES EXTRAS PARA TELAS MUITO PEQUENAS */
 @media (max-width: 375px) {
     .header h1 {
         font-size: 1.3em;

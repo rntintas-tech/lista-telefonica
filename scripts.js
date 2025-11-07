@@ -4,10 +4,39 @@ const SHEET_ID = '1ocVVhfY4-B8LSMhPfSrJfwFPUvlVSo3-l5KYLs9Z8zs';
 let departamentos = {};
 let todosRamais = [];
 let ordemGrupos = {};
+let dadosPessoas = []; // Array global para evitar problemas de escaping no onclick
 
 // ===== DETECTAR SE É MOBILE =====
 function isMobile() {
     return window.innerWidth <= 768;
+}
+
+// ===== TOAST NOTIFICATION =====
+function mostrarToast(mensagem, icone = 'bi-check-circle-fill') {
+    // Remove toast anterior se existir
+    const toastExistente = document.querySelector('.toast');
+    if (toastExistente) {
+        toastExistente.remove();
+    }
+    
+    // Cria novo toast
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = `
+        <i class="bi ${icone}"></i>
+        <span>${mensagem}</span>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Anima entrada
+    setTimeout(() => toast.classList.add('show'), 10);
+    
+    // Remove após 2 segundos
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 2000);
 }
 
 // ===== FUNÇÕES DO MODAL DE INFORMAÇÕES (atribuições + email) =====
@@ -18,6 +47,15 @@ function abrirModal(nome, telefone, atribuicoes, email) {
     document.getElementById('modalEmail').textContent = email || 'E-mail não cadastrado';
     document.getElementById('modalAtribuicoes').classList.add('active');
     document.body.style.overflow = 'hidden';
+}
+
+// Abrir modal a partir do botão (usando data-attributes)
+function abrirModalFromButton(btn) {
+    const nome = btn.dataset.nome || '';
+    const telefone = btn.dataset.telefone || '';
+    const atribuicoes = btn.dataset.atribuicoes || '';
+    const email = btn.dataset.email || '';
+    abrirModal(nome, telefone, atribuicoes, email);
 }
 
 function fecharModal(event) {
@@ -34,10 +72,10 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// Copiar número
+// ===== COPIAR NÚMERO COM TOAST =====
 function copiarNumero(numero) {
     navigator.clipboard.writeText(numero).then(() => {
-        // Feedback visual simples
+        // Feedback visual no botão
         const btn = event.target.closest('.copy-btn');
         const icon = btn.querySelector('i');
         const originalClass = icon.className;
@@ -49,6 +87,9 @@ function copiarNumero(numero) {
             icon.className = originalClass;
             btn.style.background = '';
         }, 1500);
+        
+        // 🎯 Toast notification
+        mostrarToast('Número copiado!', 'bi-clipboard-check-fill');
     });
 }
 
@@ -107,7 +148,7 @@ async function carregarRamais() {
             telefone: String(row.c[2]?.v || ''),
             whatsapp: String(row.c[3]?.v || 'NAO').toUpperCase(),
             atribuicoes: String(row.c[4]?.v || '').trim(),
-            email: String(row.c[5]?.v || '').trim() // 📧 Nova coluna EMAIL
+            email: String(row.c[5]?.v || '').trim()
         })).filter(r => r.nome && r.nome !== 'Nome');
         
         // Agrupar por departamento
@@ -172,16 +213,19 @@ function renderizarCards(deps) {
         const pessoasHtml = pessoas.map(pessoa => {
             const telefoneNumeros = pessoa.telefone.replace(/\D/g, '');
             
-            // Botão de informações (sempre aparece, mostra atribuições + email)
-            // Ícone e cor mudam: email azul quando só tem email, info laranja quando tem atribuições
+            // Botão de informações (usando data-attributes para evitar problemas com quebras de linha)
             const temAtribuicoes = pessoa.atribuicoes && pessoa.atribuicoes.trim();
             const icone = temAtribuicoes ? 'bi-info-circle' : 'bi-envelope';
             const titulo = temAtribuicoes ? 'Ver informações' : 'Ver e-mail';
             const classeBtn = temAtribuicoes ? 'info-btn' : 'email-btn';
             
             const infoBtn = `<button 
-                    onclick="abrirModal('${pessoa.nome.replace(/'/g, "\\'")}', '${pessoa.telefone}', '${(pessoa.atribuicoes || '').replace(/'/g, "\\'").replace(/\n/g, '\\n')}', '${(pessoa.email || '').replace(/'/g, "\\'")}')"
                     class="action-btn ${classeBtn}"
+                    data-nome="${pessoa.nome}"
+                    data-telefone="${pessoa.telefone}"
+                    data-atribuicoes="${pessoa.atribuicoes || ''}"
+                    data-email="${pessoa.email || ''}"
+                    onclick="abrirModalFromButton(this)"
                     title="${titulo}">
                     <i class="bi ${icone}"></i>
                 </button>`;
