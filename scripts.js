@@ -12,7 +12,7 @@ function isMobile() {
 }
 
 // ===== TOAST NOTIFICATION =====
-function mostrarToast(mensagem, icone = 'bi-check-circle-fill') {
+function mostrarToast(mensagem, icone = 'bi-check-circle-fill', tipo = 'success') {
     // Remove toast anterior se existir
     const toastExistente = document.querySelector('.toast');
     if (toastExistente) {
@@ -22,6 +22,9 @@ function mostrarToast(mensagem, icone = 'bi-check-circle-fill') {
     // Cria novo toast
     const toast = document.createElement('div');
     toast.className = 'toast';
+    if (tipo === 'error') {
+        toast.classList.add('error');
+    }
     toast.innerHTML = `
         <i class="bi ${icone}"></i>
         <span>${mensagem}</span>
@@ -73,23 +76,26 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ===== COPIAR NÚMERO COM TOAST =====
-function copiarNumero(numero) {
+function copiarNumero(numero, btn) {
     navigator.clipboard.writeText(numero).then(() => {
         // Feedback visual no botão
-        const btn = event.target.closest('.copy-btn');
         const icon = btn.querySelector('i');
         const originalClass = icon.className;
+        const originalBg = btn.style.background;
         
         icon.className = 'bi bi-check-lg';
         btn.style.background = 'linear-gradient(135deg, #28a745, #20c997)';
         
         setTimeout(() => {
             icon.className = originalClass;
-            btn.style.background = '';
+            btn.style.background = originalBg;
         }, 1500);
         
         // 🎯 Toast notification
-        mostrarToast('Número copiado!', 'bi-clipboard-check-fill');
+        mostrarToast('Número copiado!', 'bi-clipboard-check-fill', 'success');
+    }).catch(err => {
+        console.error('Erro ao copiar:', err);
+        mostrarToast('Erro ao copiar número', 'bi-x-circle-fill', 'error');
     });
 }
 
@@ -249,7 +255,7 @@ function renderizarCards(deps) {
                             <i class="bi bi-telephone-fill"></i>
                         </a>`
                     : `<button 
-                            onclick="copiarNumero('${pessoa.telefone}')"
+                            onclick="copiarNumero('${pessoa.telefone}', this)"
                             class="action-btn copy-btn"
                             title="Copiar número">
                             <i class="bi bi-clipboard"></i>
