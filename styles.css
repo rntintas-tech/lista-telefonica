@@ -14,6 +14,8 @@
     --success-color: #28a745;
     --phone-color: #0088cc;
     --call-color: #28a745;
+    --tertiary-gradient: linear-gradient(135deg, #0F3057, #1b5a99);
+    --tertiary-color: #0F3057;
 }
 
 * {
@@ -280,14 +282,31 @@ body::before {
     box-shadow: 0 8px 25px rgba(0, 21, 100, 0.2);
 }
 
+
 .department-header {
-    background: var(--primary-gradient);
-    color: var(--white);
-    padding: 15px 20px;
-    font-weight: 700;
-    font-size: 1.2em;
+    background: linear-gradient(
+        180deg,
+        #1a4276 0%,
+        #12325c 50%,
+        #0f2a50 100%
+    );
+
+    color: #ffffff;
+    padding: 16px 18px;
+
+    font-size: 1.08rem;
+    font-weight: 900;
+    letter-spacing: 0.6px;
+
     text-align: center;
+
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.08),
+        0 6px 14px rgba(0, 21, 100, 0.15);
 }
+
 
 .people-list {
     padding: 0;
