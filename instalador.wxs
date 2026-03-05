@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Lista Telefônica RN Tintas - Instalador MSI
+    Compatível com WiX Toolset v6
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+
+    <Package
+        Name="Lista Telefônica RN Tintas"
+        Language="1046"
+        Version="1.0.0"
+        Manufacturer="RN Tintas"
+        UpgradeCode="B1C2D3E4-F5A6-7890-BCDE-F12345678901"
+        InstallerVersion="200"
+        Compressed="yes"
+        Scope="perMachine">
+
+        <MajorUpgrade
+            DowngradeErrorMessage="Uma versão mais nova já está instalada." />
+
+        <!-- Garante que o .cab fica embutido dentro do .msi (arquivo único) -->
+        <MediaTemplate EmbedCab="yes" />
+
+        <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLDIR" />
+
+        <StandardDirectory Id="ProgramFilesFolder">
+            <Directory Id="INSTALLDIR" Name="Lista Telefonica RN Tintas" />
+        </StandardDirectory>
+
+        <StandardDirectory Id="ProgramMenuFolder">
+            <Directory Id="AppStartMenuFolder" Name="Lista Telefônica RN Tintas" />
+        </StandardDirectory>
+
+        <StandardDirectory Id="DesktopFolder" />
+
+        <Component Id="MainExecutable" Directory="INSTALLDIR" Guid="C3D4E5F6-A7B8-9012-CDEF-012345678902">
+            <File Id="MainExe"
+                  Source="dist\Lista Telefonica RN Tintas.exe"
+                  KeyPath="yes" />
+
+            <Shortcut Id="StartMenuShortcut"
+                      Directory="AppStartMenuFolder"
+                      Name="Lista Telefônica RN Tintas"
+                      WorkingDirectory="INSTALLDIR"
+                      Advertise="no" />
+
+            <RemoveFolder Id="RemoveStartMenuFolder"
+                          Directory="AppStartMenuFolder"
+                          On="uninstall" />
+
+            <RegistryValue Root="HKCU"
+                           Key="Software\RN Tintas\Lista Telefonica"
+                           Name="Installed"
+                           Type="integer"
+                           Value="1"
+                           KeyPath="no" />
+        </Component>
+
+        <Component Id="ShortcutDesktop" Directory="INSTALLDIR" Guid="D4E5F6A7-B8C9-0123-DEFA-123456789003">
+            <Shortcut Id="DesktopShortcut"
+                      Directory="DesktopFolder"
+                      Name="Lista Telefônica RN Tintas"
+                      WorkingDirectory="INSTALLDIR"
+                      Target="[INSTALLDIR]Lista Telefonica RN Tintas.exe"
+                      Advertise="no" />
+
+            <RegistryValue Root="HKCU"
+                           Key="Software\RN Tintas\Lista Telefonica"
+                           Name="DesktopShortcut"
+                           Type="integer"
+                           Value="1"
+                           KeyPath="yes" />
+        </Component>
+
+        <Feature Id="ProductFeature" Title="Lista Telefônica RN Tintas" Level="1">
+            <ComponentRef Id="MainExecutable" />
+            <ComponentRef Id="ShortcutDesktop" />
+        </Feature>
+
+    </Package>
+
+</Wix>
