@@ -1,6 +1,10 @@
 /build
 /dist
 /venv
+/instalador
+*.spec
+GUIA_COMPLETO.txt
+instalador.iss
 __pycache__
 *.pyc
 .DS_Store
@@ -23,4 +27,4 @@ thumbs.db
 /abrir_lista.py
 /icone.ico
 /Lista Telefônica RN.spec
-/Lista Telefônica RN.url
+/Lista Telefonica RN.url
