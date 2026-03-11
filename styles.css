@@ -6,6 +6,7 @@
     --primary-gradient: linear-gradient(135deg, #3a7bd5, #00d2ff);
     --secondary-gradient: linear-gradient(135deg, #001564, #0088cc);
     --orange-gradient: linear-gradient(135deg, #ff6b35, #f7931e);
+    --alarm-gradient: linear-gradient(135deg, #c0392b, #e74c3c);
     --white: #ffffff;
     --light-bg: #f8f9fa;
     --text-color: #333333;
@@ -14,8 +15,6 @@
     --success-color: #28a745;
     --phone-color: #0088cc;
     --call-color: #28a745;
-    --tertiary-gradient: linear-gradient(135deg, #0F3057, #1b5a99);
-    --tertiary-color: #0F3057;
 }
 
 * {
@@ -32,7 +31,6 @@ body {
     flex-direction: column;
 }
 
-/* Imagem de fundo */
 body::before {
     content: '';
     position: fixed;
@@ -48,7 +46,7 @@ body::before {
     z-index: -1;
 }
 
-/* ===== HEADER MODERNIZADO ===== */
+/* ===== HEADER ===== */
 .header {
     background: linear-gradient(135deg, rgba(0, 21, 100, 0.95), rgba(0, 136, 204, 0.95));
     backdrop-filter: blur(10px);
@@ -150,6 +148,7 @@ body::before {
     font-size: 1.2em;
 }
 
+/* ===== CONTEÚDO PRINCIPAL ===== */
 .main-content {
     flex: 1;
 }
@@ -160,7 +159,7 @@ body::before {
     padding: 30px 20px;
 }
 
-/* ===== CAMPO DE PESQUISA MODERNIZADO ===== */
+/* ===== PESQUISA ===== */
 .search-box {
     margin-bottom: 30px;
     position: sticky;
@@ -262,6 +261,7 @@ body::before {
     transform: translateY(-50%) scale(1.1);
 }
 
+/* ===== CARDS ===== */
 .cards-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
@@ -277,76 +277,50 @@ body::before {
     transition: transform 0.3s, box-shadow 0.3s;
 }
 
+.department-header {
+    background: linear-gradient(180deg, #1a4276 0%, #12325c 50%, #0f2a50 100%);
+    color: #ffffff;
+    padding: 16px 18px;
+    font-size: 1.08rem;
+    font-weight: 900;
+    letter-spacing: 0.6px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 6px 14px rgba(0, 21, 100, 0.15);
+}
+
 .department-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 25px rgba(0, 21, 100, 0.2);
 }
 
-
-.department-header {
-    background: linear-gradient(
-        180deg,
-        #1a4276 0%,
-        #12325c 50%,
-        #0f2a50 100%
-    );
-
-    color: #ffffff;
-    padding: 16px 18px;
-
-    font-size: 1.08rem;
-    font-weight: 900;
-    letter-spacing: 0.6px;
-
-    text-align: center;
-
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-
-    box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.08),
-        0 6px 14px rgba(0, 21, 100, 0.15);
-}
-
-
+/* padding-right = largura exata da scrollbar (6px), garantindo que nenhum botão fique atrás dela */
 .people-list {
-    padding: 0;
+    padding: 0 6px 0 0;
     max-height: 450px;
     overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-color) transparent;
 }
 
-.people-list::-webkit-scrollbar {
-    width: 8px;
-}
-
-.people-list::-webkit-scrollbar-track {
-    background: var(--light-bg);
-}
-
-.people-list::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 4px;
-}
-
-.people-list::-webkit-scrollbar-thumb:hover {
-    background: var(--text-muted);
-}
+.people-list::-webkit-scrollbar { width: 6px; }
+.people-list::-webkit-scrollbar-track { background: transparent; }
+.people-list::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+.people-list::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
 .person-item {
-    padding: 8px 12px;
+    padding: 8px 12px 8px 12px;
     border-bottom: 1px solid var(--border-color);
     display: flex;
     align-items: flex-start;
     gap: 6px;
     transition: background 0.2s;
+    min-width: 0;
 }
 
-.person-item:last-child {
-    border-bottom: none;
-}
-
-.person-item:hover {
-    background: var(--light-bg);
-}
+.person-item:last-child { border-bottom: none; }
+.person-item:hover { background: var(--light-bg); }
 
 .person-name {
     font-size: 0.9em;
@@ -368,6 +342,7 @@ body::before {
     padding-top: 2px;
 }
 
+/* ===== BOTÕES DE AÇÃO ===== */
 .action-btn {
     padding: 5px 8px;
     border: none;
@@ -387,7 +362,6 @@ body::before {
     background: var(--orange-gradient);
     color: var(--white);
 }
-
 .info-btn:hover {
     background: linear-gradient(135deg, #ff5722, #ff8a50);
     transform: translateY(-2px);
@@ -397,7 +371,6 @@ body::before {
     background: linear-gradient(135deg, #667eea, #764ba2);
     color: var(--white);
 }
-
 .email-btn:hover {
     background: linear-gradient(135deg, #5568d3, #6a3f8f);
     transform: translateY(-2px);
@@ -407,7 +380,6 @@ body::before {
     background: var(--primary-color);
     color: var(--white);
 }
-
 .copy-btn:hover {
     background: var(--primary-color-dark);
     transform: translateY(-2px);
@@ -417,7 +389,6 @@ body::before {
     background: linear-gradient(135deg, #28a745, #20c997);
     color: var(--white);
 }
-
 .call-btn:hover {
     background: linear-gradient(135deg, #218838, #17a2b8);
     transform: translateY(-2px);
@@ -427,12 +398,23 @@ body::before {
     background: #25D366;
     color: var(--white);
 }
-
 .whatsapp-btn:hover {
     background: #128C7E;
     transform: translateY(-2px);
 }
 
+/* Botão de alarme */
+.alarm-btn {
+    background: var(--alarm-gradient);
+    color: var(--white);
+}
+.alarm-btn:hover {
+    background: linear-gradient(135deg, #a93226, #cb4335);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(192, 57, 43, 0.4);
+}
+
+/* ===== LOADING / ERROR / NO RESULTS ===== */
 #loading, #error {
     text-align: center;
     padding: 60px 20px;
@@ -465,13 +447,8 @@ body::before {
     color: #c53030;
 }
 
-#error h3 {
-    margin-bottom: 15px;
-}
-
-#error ol {
-    color: #744210;
-}
+#error h3 { margin-bottom: 15px; }
+#error ol { color: #744210; }
 
 .reload-btn {
     margin-top: 20px;
@@ -506,6 +483,7 @@ body::before {
     margin-bottom: 15px;
 }
 
+/* ===== FOOTER ===== */
 .footer {
     background: linear-gradient(135deg, rgba(0, 21, 100, 0.95), rgba(0, 136, 204, 0.95));
     color: var(--white);
@@ -557,6 +535,7 @@ body::before {
     opacity: 0.8;
 }
 
+/* ===== MODAIS (base compartilhada) ===== */
 .modal-overlay {
     display: none;
     position: fixed;
@@ -589,14 +568,8 @@ body::before {
 }
 
 @keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
 .modal-header {
@@ -607,6 +580,18 @@ body::before {
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+/* Header do modal de alarme usa o mesmo gradiente azul do projeto */
+.modal-header--alarme {
+    background: var(--secondary-gradient);
+}
+
+.modal-subtitle {
+    font-size: 0.8em;
+    opacity: 0.85;
+    font-weight: 400;
+    margin-top: 3px;
 }
 
 .modal-title {
@@ -641,6 +626,7 @@ body::before {
     padding: 30px;
 }
 
+/* Modal de informações */
 .modal-info {
     display: flex;
     flex-direction: column;
@@ -659,9 +645,7 @@ body::before {
     min-width: 30px;
 }
 
-.info-content {
-    flex: 1;
-}
+.info-content { flex: 1; }
 
 .info-label {
     font-size: 0.85em;
@@ -679,7 +663,127 @@ body::before {
     white-space: pre-wrap;
 }
 
-/* ===== TOAST NOTIFICATION ===== */
+/* ===== MODAL DE ALARME — conteúdo ===== */
+.alarm-section {
+    margin-bottom: 24px;
+}
+
+.alarm-section:last-child { margin-bottom: 0; }
+
+.alarm-section-title {
+    font-size: 0.8em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.alarm-hint {
+    font-size: 0.8em;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    font-style: italic;
+}
+
+.alarm-contact {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: var(--light-bg);
+    margin-bottom: 8px;
+    transition: background 0.2s;
+}
+
+.alarm-contact:last-child { margin-bottom: 0; }
+
+.alarm-contact:hover { background: #eef2ff; }
+
+/* Estilo especial para linha da empresa */
+.alarm-contact--empresa {
+    background: rgba(0, 136, 204, 0.07);
+    border-left: 3px solid var(--secondary-color);
+}
+
+.alarm-contact--empresa:hover { background: rgba(0, 136, 204, 0.14); }
+
+.alarm-order {
+    background: var(--secondary-gradient);
+    color: var(--white);
+    font-size: 0.75em;
+    font-weight: 700;
+    min-width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.alarm-contact-name {
+    flex: 1;
+    font-size: 0.95em;
+    font-weight: 500;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.alarm-senha-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.72em;
+    font-weight: 600;
+    color: var(--secondary-color);
+    background: rgba(0, 136, 204, 0.1);
+    border: 1px solid rgba(0, 136, 204, 0.25);
+    padding: 2px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+
+/* Telefone sempre clicável — funciona em desktop e mobile */
+.alarm-phone-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: var(--secondary-gradient);
+    color: var(--white);
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.alarm-phone-link:hover {
+    background: linear-gradient(135deg, #0066aa, #0077bb);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 136, 204, 0.35);
+}
+
+.alarm-no-phone {
+    font-size: 0.8em;
+    color: var(--text-muted);
+    font-style: italic;
+    flex-shrink: 0;
+}
+
+/* ===== TOAST ===== */
 .toast {
     position: fixed;
     bottom: 30px;
@@ -706,9 +810,7 @@ body::before {
     transform: translateX(-50%) translateY(0);
 }
 
-.toast i {
-    font-size: 1.3em;
-}
+.toast i { font-size: 1.3em; }
 
 .toast.error {
     background: linear-gradient(135deg, #dc3545, #c82333);
@@ -717,31 +819,16 @@ body::before {
 
 /* ===== RESPONSIVIDADE MOBILE ===== */
 @media (max-width: 768px) {
-    .header {
-        padding: 15px;
-    }
-    
-    .header h1 {
-        font-size: 1.4em;
-    }
-    
-    .header-subtitle {
-        font-size: 0.75em;
-    }
-    
-    .logo {
-        width: 55px;
-        height: 55px;
-    }
+    .header { padding: 15px; }
+    .header h1 { font-size: 1.4em; }
+    .header-subtitle { font-size: 0.75em; }
+    .logo { width: 55px; height: 55px; }
     
     .legend {
         font-size: 0.7em;
         gap: 8px;
     }
-    
-    .legend-item {
-        padding: 3px 8px;
-    }
+    .legend-item { padding: 3px 8px; }
 
     .header-content {
         grid-template-areas: 
@@ -758,54 +845,25 @@ body::before {
         border-radius: 10px;
         margin-bottom: 15px;
     }
-
-    .search-header {
-        margin-bottom: 10px;
-    }
-
-    .search-title {
-        font-size: 0.75em;
-    }
-
-    .results-count {
-        font-size: 0.7em;
-        padding: 3px 8px;
-    }
+    .search-header { margin-bottom: 10px; }
+    .search-title { font-size: 0.75em; }
+    .results-count { font-size: 0.7em; padding: 3px 8px; }
     
     .search-input {
         padding: 12px 40px 12px 40px;
         font-size: 16px;
         border-radius: 8px;
     }
-
-    .search-icon {
-        font-size: 1em;
-        left: 14px;
-    }
-
-    .clear-search {
-        right: 10px;
-        width: 24px;
-        height: 24px;
-    }
+    .search-icon { font-size: 1em; left: 14px; }
+    .clear-search { right: 10px; width: 24px; height: 24px; }
 
     .cards-container {
         grid-template-columns: 1fr;
         gap: 12px;
     }
-
-    .department-card {
-        border-radius: 8px;
-    }
-    
-    .department-header {
-        font-size: 0.9em;
-        padding: 10px 12px;
-    }
-
-    .people-list {
-        max-height: none;
-    }
+    .department-card { border-radius: 8px; }
+    .department-header { font-size: 0.9em; padding: 10px 12px; }
+    .people-list { max-height: none; }
     
     .person-item {
         padding: 7px 10px;
@@ -832,8 +890,7 @@ body::before {
         line-height: 1.3;
     }
 
-    .action-btn,
-    a.action-btn {
+    .action-btn, a.action-btn {
         order: 3;
         flex: 0 0 30px;
         height: 30px;
@@ -852,129 +909,62 @@ body::before {
         height: 0;
     }
 
-    .action-btn i {
-        font-size: 1em;
-    }
+    .action-btn i { font-size: 1em; }
 
+    /* Modal base */
     .modal-content {
         max-width: 95%;
         margin: 10px;
         border-radius: 16px;
     }
-
     .modal-header {
         padding: 20px 20px;
         border-radius: 16px 16px 0 0;
     }
+    .modal-title { font-size: 1.1em; gap: 10px; }
+    .modal-close { width: 32px; height: 32px; font-size: 1.2em; }
+    .modal-body { padding: 20px; }
+    .info-row { gap: 12px; }
+    .info-icon { font-size: 1.3em; }
+    .info-label { font-size: 0.75em; }
+    .info-value { font-size: 0.95em; }
 
-    .modal-title {
-        font-size: 1.1em;
-        gap: 10px;
+    /* Modal alarme mobile */
+    .alarm-contact {
+        flex-wrap: wrap;
+        gap: 8px;
     }
 
-    .modal-close {
-        width: 32px;
-        height: 32px;
-        font-size: 1.2em;
+    .alarm-phone-link {
+        font-size: 0.82em;
+        padding: 5px 12px;
     }
 
-    .modal-body {
-        padding: 20px;
-    }
+    #loading, #error { padding: 40px 15px; margin: 15px; border-radius: 12px; }
+    #loading h3, #error h3 { font-size: 1.1em; }
+    #loading p, #error p { font-size: 0.9em; }
+    .spinner { width: 50px; height: 50px; }
 
-    .info-row {
-        gap: 12px;
-    }
+    .footer { padding: 20px 15px; }
+    .footer-links { gap: 20px; font-size: 0.85em; }
+    .footer-copy { font-size: 0.75em; }
 
-    .info-icon {
-        font-size: 1.3em;
-    }
+    #noResults { padding: 40px 15px; border-radius: 12px; }
+    #noResults i { font-size: 2.5em; }
+    #noResults h3 { font-size: 1.1em; }
+    #noResults p { font-size: 0.9em; }
 
-    .info-label {
-        font-size: 0.75em;
-    }
-
-    .info-value {
-        font-size: 0.95em;
-    }
-
-    #loading, #error {
-        padding: 40px 15px;
-        margin: 15px;
-        border-radius: 12px;
-    }
-
-    #loading h3, #error h3 {
-        font-size: 1.1em;
-    }
-
-    #loading p, #error p {
-        font-size: 0.9em;
-    }
-
-    .spinner {
-        width: 50px;
-        height: 50px;
-    }
-
-    .footer {
-        padding: 20px 15px;
-    }
-
-    .footer-links {
-        gap: 20px;
-        font-size: 0.85em;
-    }
-
-    .footer-copy {
-        font-size: 0.75em;
-    }
-
-    #noResults {
-        padding: 40px 15px;
-        border-radius: 12px;
-    }
-
-    #noResults i {
-        font-size: 2.5em;
-    }
-
-    #noResults h3 {
-        font-size: 1.1em;
-    }
-
-    #noResults p {
-        font-size: 0.9em;
-    }
-
-    /* Toast mobile */
-    .toast {
-        bottom: 20px;
-        padding: 12px 20px;
-        font-size: 0.85em;
-        border-radius: 10px;
-        max-width: 90%;
-    }
+    .toast { bottom: 20px; padding: 12px 20px; font-size: 0.85em; border-radius: 10px; max-width: 90%; }
 }
 
 @media (max-width: 375px) {
-    .header h1 {
-        font-size: 1.3em;
-    }
-
-    .logo {
-        width: 50px;
-        height: 50px;
-    }
-
+    .header h1 { font-size: 1.3em; }
+    .logo { width: 50px; height: 50px; }
     .action-btn {
         padding: 8px 12px;
         font-size: 0.95em;
         min-width: 20px;
         min-height: 20px;
     }
-
-    .search-input {
-        padding: 12px 40px 12px 40px;
-    }
+    .search-input { padding: 12px 40px 12px 40px; }
 }
