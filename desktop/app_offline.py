@@ -10,7 +10,7 @@ def main():
     base_dir = os.path.dirname(os.path.abspath(__file__))
     
     # Caminho do index.html
-    html_path = os.path.join(base_dir, 'index.html')
+    html_path = os.path.join(base_dir, '..', 'docs', 'index.html')
     
     # Cria janela carregando arquivo local
     window = webview.create_window(

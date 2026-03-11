@@ -31,7 +31,7 @@ if exist *.spec del /q *.spec
 echo.
 echo [3/4] Compilando Python para .exe...
 echo (Isso pode demorar 1-2 minutos)
-pyinstaller --onefile --windowed --name "Lista Telefonica RN Tintas" app.py
+pyinstaller --onefile --windowed --name "Lista Telefonica RN Tintas" desktop\app.py
 
 if not exist "dist\Lista Telefonica RN Tintas.exe" (
     echo.
