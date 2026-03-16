@@ -5,63 +5,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lista Telefônica — RN Tintas</title>
 
-    <!-- Tailwind CDN com configuração de marca -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        brand: {
-                            950: '#000d3a',
-                            900: '#001564',
-                            800: '#002080',
-                            600: '#0044bb',
-                            500: '#0055cc',
-                            400: '#0088cc',
-                            300: '#33aadd',
-                            100: '#daedf8',
-                            50:  '#edf6fc',
-                        },
-                        rn: {
-                            orange:  '#ff6b35',
-                            alarm:   '#c0392b',
-                        }
+                        navy:   { DEFAULT: '#001564', dark: '#000d3a', mid: '#002080' },
+                        sky:    { DEFAULT: '#0088cc' },
+                        rn:     { orange: '#ff6b35', alarm: '#c0392b' },
                     },
                     fontFamily: {
-                        sans: ['Onest', 'system-ui', 'sans-serif'],
-                        mono: ['Fira Code', 'monospace'],
-                    },
-                    boxShadow: {
-                        'brand-sm': '0 1px 4px rgba(0,21,100,0.07)',
-                        'brand-md': '0 3px 14px rgba(0,21,100,0.10)',
-                        'brand-lg': '0 6px 28px rgba(0,21,100,0.14)',
-                        'brand-xl': '0 12px 44px rgba(0,21,100,0.18)',
+                        sans:    ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'],
+                        heading: ['"Barlow Condensed"', 'sans-serif'],
+                        mono:    ['"JetBrains Mono"', 'monospace'],
                     }
                 }
             }
         }
     </script>
 
-    <!--
-        Onest   → cabeçalhos e corpo (humanista, cálida, com caráter)
-        Fira Code → números de telefone e labels técnicas
-    -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800;900&family=Fira+Code:wght@500;600&display=swap" rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
 
-<body class="font-sans bg-slate-100 min-h-screen flex flex-col antialiased" style="background-color:#eef2f7;">
-
-    <!-- ===== FAIXA DE TINTA (via CSS) ===== -->
+<body class="font-sans antialiased">
 
     <!-- ===== HEADER ===== -->
     <header class="sticky top-0 z-[100] text-white px-7 py-5 header-bg">
-        <div class="max-w-[1440px] mx-auto grid gap-x-5" style="grid-template-areas:'logo title' 'logo legend'; grid-template-columns: auto 1fr;">
+        <div class="max-w-[1440px] mx-auto grid gap-x-5"
+             style="grid-template-areas:'logo title' 'logo legend'; grid-template-columns: auto 1fr;">
 
             <!-- Logo -->
             <div style="grid-area:logo" class="flex items-center">
@@ -82,77 +58,99 @@
                     <i class="bi bi-info-circle-fill text-rn-orange"></i> Info
                 </span>
                 <span class="legend-chip">
-                    <i class="bi bi-envelope-fill text-indigo-300"></i> E-mail
+                    <i class="bi bi-envelope-fill" style="color:#a5b4fc;"></i> E-mail
                 </span>
                 <span class="legend-chip">
                     <i class="bi bi-clipboard-fill text-white/80"></i> Copiar/Ligar
                 </span>
                 <span class="legend-chip">
-                    <i class="bi bi-whatsapp text-green-400"></i> WhatsApp
+                    <i class="bi bi-whatsapp" style="color:#86efac;"></i> WhatsApp
                 </span>
                 <span class="legend-chip">
-                    <i class="bi bi-shield-lock-fill text-red-300"></i> Alarme
+                    <i class="bi bi-shield-lock-fill" style="color:#fca5a5;"></i> Alarme
                 </span>
             </div>
 
         </div>
     </header>
 
+    <!-- ===== TUTORIAL BANNER (abaixo do header, dispensável) ===== -->
+    <div id="tutorial-banner" class="tutorial-banner">
+        <div class="tutorial-content">
+            <div class="tutorial-lamp">
+                <i class="bi bi-lightbulb-fill"></i>
+            </div>
+            <div class="tutorial-text">
+                <strong>Como usar:</strong>
+                Clique no botão
+                <span class="tutorial-dots-demo" aria-label="reticências">
+                    <span></span><span></span><span></span>
+                </span>
+                ao lado de cada contato para ver mais ações:
+                <span class="t-chip t-chip--info"><i class="bi bi-info-circle-fill"></i>Info</span>
+                <span class="t-chip t-chip--email"><i class="bi bi-envelope-fill"></i>E-mail</span>
+                <span class="t-chip t-chip--whats"><i class="bi bi-whatsapp"></i>WhatsApp</span>
+                <span class="t-chip t-chip--alarm"><i class="bi bi-shield-lock-fill"></i>Alarme</span>
+            </div>
+        </div>
+        <button class="tutorial-close" onclick="dispensarTutorial()" title="Entendi, fechar">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+
     <!-- ===== CONTEÚDO PRINCIPAL ===== -->
-    <main class="flex-1">
-        <div class="max-w-[1440px] mx-auto px-5 py-7">
+    <main class="main-area">
+        <div class="main-inner">
 
             <!-- Campo de pesquisa -->
-            <div class="search-box sticky z-50 bg-white rounded-2xl shadow-brand-lg border border-slate-200 p-4 mb-6 transition-all duration-200"
-                 style="top: calc(148px + 10px);">
-                <div class="flex justify-between items-center mb-3">
-                    <span class="text-[0.68rem] font-bold uppercase tracking-widest text-slate-400 flex items-center gap-2">
-                        <i class="bi bi-search"></i>Buscar contato
-                    </span>
-                    <span id="resultsCount"
-                          class="font-mono text-[0.72rem] font-semibold text-brand-500 bg-brand-50 border border-brand-100 px-3 py-0.5 rounded-full">
-                        0 contatos
-                    </span>
-                </div>
-                <div class="relative">
-                    <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+            <div class="search-wrapper">
+                <div class="search-box">
+                    <i class="bi bi-search search-lead-icon"></i>
                     <input
                         type="text"
                         id="searchInput"
-                        class="w-full pl-11 pr-11 py-3 bg-slate-50 border border-slate-200 rounded-xl font-sans text-sm font-medium text-slate-800 placeholder:text-slate-400 placeholder:font-normal outline-none transition-all duration-200 focus:bg-white focus:border-brand-400 focus:ring-2 focus:ring-brand-400/10 caret-brand-400"
-                        placeholder="Nome, departamento ou telefone..."
+                        class="search-input"
+                        placeholder="Nome, departamento ou telefone…"
                         autocomplete="off"
+                        spellcheck="false"
                     >
-                    <button
-                        id="clearSearch"
-                        class="clear-search absolute right-3 top-1/2 -translate-y-1/2 hidden w-6 h-6 items-center justify-center rounded-full bg-slate-300 text-white text-xs transition-all hover:bg-brand-900 hover:scale-110">
+                    <button id="clearSearch" class="clear-btn" title="Limpar busca">
                         <i class="bi bi-x"></i>
                     </button>
                 </div>
+                <span id="resultsCount" class="results-badge font-mono">0 contatos</span>
             </div>
 
             <!-- Loading -->
-            <div id="loading" class="text-center py-20 bg-white rounded-2xl shadow-brand-md border border-slate-200 max-w-md mx-auto">
-                <div class="spinner mx-auto mb-6"></div>
-                <h3 class="text-base font-bold text-slate-700 mb-2">Carregando contatos</h3>
-                <p class="text-sm text-slate-400">Buscando dados da planilha</p>
+            <div id="loading" class="state-card">
+                <div class="spinner" aria-label="Carregando"></div>
+                <p class="text-sm text-slate-500 mt-4 font-medium">Carregando contatos…</p>
             </div>
 
-            <!-- Erro -->
+            <!-- Erro (preenchido pelo scripts.js) -->
             <div id="error" class="hidden"></div>
 
             <!-- Sem resultados -->
-            <div id="noResults" class="hidden text-center py-20 bg-white rounded-2xl shadow-brand-md border border-slate-200">
-                <i class="bi bi-search text-5xl text-slate-300 block mb-4"></i>
-                <h3 class="text-base font-bold text-slate-600 mb-2">Nenhum contato encontrado</h3>
-                <p class="text-sm text-slate-400">Tente buscar por outro nome, departamento ou número</p>
+            <div id="noResults" class="hidden state-card">
+                <i class="bi bi-search text-4xl text-slate-300"></i>
+                <p class="text-sm text-slate-400 mt-3 font-medium">Nenhum contato encontrado</p>
+                <p class="text-xs text-slate-300 mt-1">Tente outro nome, departamento ou número</p>
             </div>
 
-            <!-- Cards dos departamentos -->
-            <div class="cards-container" id="cardsContainer"></div>
+            <!-- Lista de contatos (gerada pelo scripts.js) -->
+            <div id="cardsContainer" class="list-container"></div>
 
         </div>
     </main>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="site-footer">
+        <a href="https://api.whatsapp.com/send?phone=553521053035&text=Olá%2C%20estou%20com%20um%20problema%20na%20lista%20telefônica."
+           class="footer-link" target="_blank" rel="noopener">
+            <i class="bi bi-question-circle"></i> Ajuda
+        </a>
+        <span class="text-white/20 font-mono text-xs">&copy; 2025 RN Tintas</span>
+    </footer>
 
     <!-- ===== MODAL DE INFORMAÇÕES ===== -->
     <div class="modal-overlay" id="modalAtribuicoes" onclick="fecharModal(event)">
@@ -172,7 +170,7 @@
                         <i class="bi bi-telephone-fill info-icon"></i>
                         <div class="info-content">
                             <div class="info-label">Telefone</div>
-                            <div class="info-value" id="modalTelefone">-</div>
+                            <div class="info-value font-mono" id="modalTelefone">-</div>
                         </div>
                     </div>
                     <div class="info-row">
@@ -213,20 +211,23 @@
         </div>
     </div>
 
-    <!-- ===== FOOTER ===== -->
-    <footer class="footer-bg text-white py-5 px-5 mt-auto shadow-[0_-4px_24px_rgba(0,21,100,0.25)]">
-        <div class="max-w-[1440px] mx-auto flex flex-col items-center gap-3">
-            <div class="flex justify-center gap-5">
-                <a href="https://api.whatsapp.com/send?phone=553521053035&text=Ol%C3%A1%2C%20estou%20com%20um%20problema%20na%20lista%20telef%C3%B4nica."
-                   class="footer-link">
-                    <i class="bi bi-question-circle-fill"></i>
-                    Ajuda
-                </a>
+
+    <!-- ===== MODAL DE AÇÕES (botão ···) ===== -->
+    <div class="modal-overlay" id="modalAcoes" onclick="fecharModalAcoes(event)">
+        <div class="modal-content modal-acoes-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="bi bi-person-fill"></i>
+                    <span id="acoes-nome">Ações</span>
+                </div>
+                <button class="modal-close" onclick="fecharModalAcoes()">
+                    <i class="bi bi-x"></i>
+                </button>
             </div>
-            <div class="w-full h-px bg-white/10"></div>
-            <p class="text-[0.7rem] text-white/40 tracking-widest">&copy; 2025 RN Tintas &middot; Lista Telefônica Interna</p>
+            <div class="modal-body" id="acoes-body"></div>
         </div>
-    </footer>
+    </div>
+
 
     <script src="scripts.js"></script>
 </body>
