@@ -1,0 +1,725 @@
+<!doctype html>
+<!--
+  FOCO-OS nos favoritos do Chrome — tutorial da página que substitui a Lista Telefônica antiga.
+
+  Cena única de 22,5 s em loop, 1600×1000, sem som. Roda de dois jeitos:
+  - no HyperFrames (lint / check / preview / render), como qualquer composição;
+  - ao vivo, dentro da página do aviso: ela carrega este arquivo num iframe e avança a timeline
+    pausada (site/index.html).
+
+  A página dentro do Chrome reproduz a Lista completa do FOCO-OS (templates/phonebook/list.html +
+  static/css/area.css + apps-ds.css), mas com lojas, telefones e e-mail inventados: o aviso é
+  público, e nenhum dado real entra em vídeo (PADRAO-DE-VIDEOS §3).
+-->
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1600, height=1000" />
+    <title>FOCO-OS nos favoritos do Chrome</title>
+    <!-- GSAP 3.14.2 local (npm pack, integridade conferida com o registro): sem CDN em produção -->
+    <script src="assets/vendor/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Inter"; font-style: normal; font-weight: 100 900; font-display: block; src: url("assets/fonts/inter-latin.woff2") format("woff2"); }
+      @font-face { font-family: "General Sans"; font-style: normal; font-weight: 600; font-display: block; src: url("assets/fonts/general-sans-600.woff2") format("woff2"); }
+      @font-face { font-family: "General Sans"; font-style: normal; font-weight: 700; font-display: block; src: url("assets/fonts/general-sans-700.woff2") format("woff2"); }
+      @font-face { font-family: "JetBrains Mono"; font-style: normal; font-weight: 400 800; font-display: block; src: url("assets/fonts/jetbrains-mono-latin.woff2") format("woff2"); }
+
+      :root {
+        /* FOCO-OS — design system */
+        --navy-950: #050e33; --navy-900: #091853; --navy-800: #102577; --navy-700: #172e8c;
+        --primary-600: #243da3;
+        --orange-700: #bf3f08; --orange-600: #e65705; --orange-500: #ff790b; --orange-400: #ff9538; --orange-300: #ffb36b;
+        --amber: #f9a006; --amber-light: #fbbb44;
+        --n100: #f2f3f7; --n200: #e3e5ed; --n300: #cdcfdb; --n600: #5a5f72; --n700: #424657; --n900: #1d1f2b;
+        --info: #1585d5; --info-tint: #e3f0fb; --success: #259d65; --success-tint: #e2f3ea; --error: #df3226; --error-tint: #fbe3e1;
+        --av-tint: #ffebd9; --sel-tint: #eef1fb; --sel-line: #c5cdf0; --copy-tint: #e7eaf8;
+        /* Chrome — tema claro */
+        --cr-frame: #dfe5ee; --cr-surface: #ffffff; --cr-omni: #e9eef6; --cr-ink: #1f1f1f;
+        --cr-icon: #474747; --cr-muted: #5b616b; --cr-label: #444746; --cr-blue: #0b57d0;
+        --cr-select: #c2d7ff; --cr-line: #e1e3e1; --cr-outline: #747775; --cr-hover: #e8ebf0;
+        --cr-avatar: #c9d6f2;
+
+        --font-display: "General Sans", "Inter", sans-serif;
+        --font-body: "Inter", sans-serif;
+        --font-mono: "JetBrains Mono", monospace;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1600px; height: 1000px; overflow: hidden; background: var(--navy-950); }
+      #root {
+        position: relative; width: 100%; height: 100%; overflow: hidden;
+        font-family: var(--font-body); color: #fff;
+        background: radial-gradient(110% 90% at 18% 0%, var(--navy-700) 0%, var(--navy-900) 52%, var(--navy-950) 100%);
+      }
+      #scene { position: absolute; inset: 0; }
+      svg { display: block; }
+      .ic { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+      /* ---------- 1 · arte de fundo ---------- */
+      .bg { position: absolute; inset: 0; overflow: hidden; }
+      .glow { position: absolute; border-radius: 50%; }
+      .glow-blue { width: 1100px; height: 1100px; left: -380px; top: -470px; background: radial-gradient(circle, rgba(86, 112, 215, 0.5) 0%, rgba(86, 112, 215, 0) 66%); }
+      .glow-orange { width: 960px; height: 960px; right: -330px; bottom: -430px; background: radial-gradient(circle, rgba(255, 121, 11, 0.34) 0%, rgba(255, 121, 11, 0) 66%); }
+
+      /* ---------- 2 · faixa de cima (fixa, fora da câmera) ---------- */
+      .band { position: absolute; left: 0; top: 0; width: 1600px; height: 150px; }
+      .band-eyebrow { position: absolute; left: 72px; top: 28px; font: 600 20px/1 var(--font-body); letter-spacing: 0.16em; text-transform: uppercase; color: var(--orange-300); }
+      .band-row { position: absolute; left: 72px; right: 72px; top: 62px; height: 56px; display: flex; align-items: center; gap: 20px; opacity: 0; }
+      .band-num { width: 52px; height: 52px; border-radius: 50%; flex: none; display: grid; place-items: center; background: var(--orange-400); color: var(--navy-950); font: 700 28px/1 var(--font-display); }
+      .band-num--ok { background: var(--amber-light); }
+      .band-num--ok .ic { width: 30px; height: 30px; stroke-width: 3; }
+      .band-text { display: flex; align-items: center; gap: 12px; font: 600 40px/1.1 var(--font-display); letter-spacing: -0.01em; white-space: nowrap; }
+      .band-text b { font-weight: 600; color: var(--orange-300); }
+      .band-text .ic { width: 38px; height: 38px; color: var(--orange-300); }
+      .band-count { margin-left: auto; font: 500 22px/1 var(--font-mono); letter-spacing: 0.04em; color: rgba(255, 255, 255, 0.66); white-space: nowrap; }
+      .band-track { position: absolute; left: 72px; right: 72px; top: 134px; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.14); overflow: hidden; }
+      .band-fill { width: 100%; height: 100%; background: var(--orange-400); transform-origin: 0 50%; }
+
+      kbd { display: inline-flex; align-items: center; justify-content: center; min-width: 46px; height: 46px; padding: 0 14px; border-radius: 10px; background: #fff; color: var(--navy-950); font: 600 24px/1 var(--font-body); box-shadow: inset 0 -4px 0 var(--n300); }
+
+      /* ---------- 3 · palco + câmera (o "mundo" tem 1600×850) ---------- */
+      .stage {
+        position: absolute; left: 0; top: 150px; width: 1600px; height: 850px; overflow: hidden;
+        -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 26px);
+        mask-image: linear-gradient(to bottom, transparent 0, #000 26px);
+      }
+      .cam-outer { position: absolute; inset: 0; transform-origin: 50% 50%; }
+      .cam-inner { position: absolute; inset: 0; }
+
+      /* janela do Chrome: left 100 / top 34 no mundo, 1400×780 */
+      .browser {
+        position: absolute; left: 100px; top: 34px; width: 1400px; height: 780px; border-radius: 16px; overflow: hidden;
+        background: var(--cr-frame); opacity: 0;
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 40px 120px rgba(0, 0, 0, 0.5), 0 12px 32px rgba(0, 0, 0, 0.35);
+      }
+      .tabstrip { position: absolute; left: 0; top: 0; width: 1400px; height: 58px; }
+      .tab { position: absolute; left: 12px; top: 10px; width: 392px; height: 48px; border-radius: 14px 14px 0 0; background: var(--cr-surface); display: flex; align-items: center; gap: 12px; padding: 0 14px 0 18px; }
+      .tab-fav { width: 22px; height: 22px; border-radius: 5px; }
+      .tab-title { flex: 1; font: 500 18px/1 var(--font-body); color: var(--cr-ink); white-space: nowrap; }
+      .tab .ic { width: 18px; height: 18px; color: var(--cr-icon); }
+      .tab-new { position: absolute; left: 420px; top: 23px; width: 22px; height: 22px; color: var(--cr-icon); }
+      .winctl { position: absolute; right: 0; top: 0; height: 46px; display: flex; }
+      .winctl span { width: 58px; height: 46px; display: grid; place-items: center; color: var(--cr-icon); }
+      .winctl .ic { width: 18px; height: 18px; stroke-width: 1.6; }
+
+      .toolbar { position: absolute; left: 0; top: 58px; width: 1400px; height: 70px; z-index: 3; background: var(--cr-surface); border-bottom: 1px solid var(--cr-line); }
+      .tb-ic { position: absolute; top: 23px; width: 24px; height: 24px; color: var(--cr-icon); }
+      .omni { position: absolute; left: 166px; top: 11px; width: 1094px; height: 48px; border-radius: 24px; background: var(--cr-omni); }
+      .omni-tune { position: absolute; left: 16px; top: 12px; width: 24px; height: 24px; color: var(--cr-icon); }
+      .url { position: absolute; left: 54px; top: 0; height: 48px; display: flex; align-items: center; font: 400 20px/1 var(--font-body); white-space: nowrap; }
+      .url-host { color: var(--cr-ink); }
+      .url-path { color: var(--cr-muted); }
+      .star { position: absolute; left: 1046px; top: 4px; width: 40px; height: 40px; }
+      .star-hover { position: absolute; inset: 0; border-radius: 50%; background: rgba(31, 31, 31, 0.09); opacity: 0; }
+      .star svg { position: absolute; left: 8px; top: 8px; width: 24px; height: 24px; transform-origin: 50% 50%; }
+      .star-outline { color: var(--cr-icon); }
+      .star-filled { fill: var(--cr-blue); stroke: var(--cr-blue); opacity: 0; }
+      .avatar { position: absolute; left: 1285px; top: 18px; width: 34px; height: 34px; border-radius: 50%; background: var(--cr-avatar); color: var(--navy-800); display: grid; place-items: center; }
+      .avatar .ic { width: 20px; height: 20px; }
+
+      /* barra de favoritos: escondida atrás da barra de ferramentas até o Ctrl + Shift + B */
+      .bmbar { position: absolute; left: 0; top: 84px; width: 1400px; height: 44px; z-index: 2; background: var(--cr-surface); border-bottom: 1px solid var(--cr-line); }
+      .bm-chip { position: absolute; left: 12px; top: 5px; width: 132px; height: 34px; border-radius: 17px; display: flex; align-items: center; gap: 10px; padding: 0 14px 0 10px; opacity: 0; }
+      .bm-hover { position: absolute; inset: 0; border-radius: 17px; background: var(--cr-hover); opacity: 0; }
+      .bm-fav { position: relative; width: 20px; height: 20px; flex: none; border-radius: 4px; background: url("assets/img/foco-favicon.png") center / cover; }
+      .bm-name { position: relative; font: 500 17px/1 var(--font-body); color: var(--cr-ink); white-space: nowrap; }
+      .bm-all { position: absolute; right: 16px; top: 5px; height: 34px; display: flex; align-items: center; gap: 8px; font: 500 17px/1 var(--font-body); color: var(--cr-icon); opacity: 0; }
+      .bm-all .ic { width: 20px; height: 20px; }
+
+      /* ---- a Lista completa do FOCO-OS: shell de Área (sidebar navy) + barra de busca/filtros + lista e detalhe ---- */
+      .page { position: absolute; left: 0; top: 128px; width: 1400px; height: 652px; z-index: 1; display: flex; overflow: hidden; background: var(--n100); }
+      .side { position: relative; width: 300px; height: 100%; flex: none; padding: 0 16px; background: linear-gradient(180deg, #0d1b52 0%, #091542 55%, #060f33 100%); border-right: 1px solid rgba(255, 255, 255, 0.1); }
+      .side::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: linear-gradient(135deg, var(--orange-500), var(--orange-600)); }
+      .side-brand { display: flex; align-items: center; gap: 12px; padding: 24px 8px 14px; }
+      .side-brand img { width: 44px; height: auto; }
+      .side-brand strong { display: block; font: 700 22px/1 var(--font-display); letter-spacing: -0.01em; color: #fff; white-space: nowrap; }
+      .side-brand strong b { font-weight: 700; color: var(--orange-400); }
+      .side-brand span { display: block; margin-top: 5px; font: 500 12px/1 var(--font-body); letter-spacing: 0.16em; text-transform: uppercase; color: rgba(197, 207, 244, 0.78); }
+      .side-label { display: flex; align-items: center; gap: 10px; padding: 16px 12px 8px; font: 600 12px/1 var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: rgba(197, 207, 244, 0.78); }
+      .side-label::after { content: ""; flex: 1; height: 1px; background: rgba(255, 255, 255, 0.12); }
+      .side-item { position: relative; display: flex; align-items: center; gap: 12px; height: 46px; padding: 0 12px; border-radius: 12px; font: 500 16px/1 var(--font-body); color: rgba(229, 233, 250, 0.86); white-space: nowrap; }
+      .side-item .ic { width: 22px; height: 22px; }
+      .side-item .chev { width: 18px; height: 18px; margin-left: auto; }
+      .side-item.is-on { color: #fff; background: linear-gradient(90deg, rgba(255, 121, 11, 0.18), rgba(255, 121, 11, 0.02) 80%); box-shadow: inset 0 0 0 1px rgba(255, 179, 107, 0.16); }
+      .side-item.is-on .lead { color: var(--orange-400); filter: drop-shadow(0 0 7px rgba(255, 121, 11, 0.55)); }
+      .side-item.is-on::before { content: ""; position: absolute; left: -3px; top: 12px; width: 3px; height: 22px; border-radius: 2px; background: var(--orange-500); box-shadow: 0 0 12px rgba(255, 121, 11, 0.8); }
+      .side-sub { position: relative; list-style: none; padding: 4px 0 6px 36px; }
+      .side-sub::before { content: ""; position: absolute; left: 23px; top: 6px; bottom: 10px; width: 1.5px; background: rgba(255, 255, 255, 0.12); }
+      .side-sub li { display: flex; align-items: center; gap: 12px; height: 38px; padding: 0 12px; border-radius: 9px; font: 500 15px/1 var(--font-body); color: rgba(229, 233, 250, 0.86); }
+      .side-sub .dot { width: 6px; height: 6px; flex: none; border-radius: 50%; background: rgba(197, 207, 244, 0.66); }
+      .side-sub li.is-on { color: #fff; font-weight: 600; background: rgba(255, 255, 255, 0.06); }
+      .side-sub li.is-on .dot { width: 10px; height: 10px; background: var(--orange-400); box-shadow: 0 0 8px rgba(255, 121, 11, 0.8); }
+
+      .main { flex: 1; min-width: 0; display: flex; flex-direction: column; background: var(--n100); }
+      .topbar { height: 70px; flex: none; display: flex; align-items: center; gap: 18px; padding: 0 26px; border-bottom: 1px solid var(--n200); background: linear-gradient(90deg, #eef1fb 0%, #f4f4f8 60%, #fbf0e7 100%); }
+      .toggle { width: 44px; height: 44px; border-radius: 10px; display: grid; place-items: center; border: 1px solid var(--n200); background: #fff; color: var(--n600); }
+      .toggle .ic { width: 22px; height: 22px; }
+      .crumbs { display: flex; align-items: center; gap: 8px; font: 400 15px/1 var(--font-body); color: var(--n600); }
+      .crumbs .ic { width: 15px; height: 15px; }
+      .crumbs b { font-weight: 600; color: var(--n900); }
+
+      .pb-toolbar { flex: none; padding: 16px 18px 0; background: #fff; border-bottom: 1px solid var(--n200); }
+      .pb-searchrow { display: flex; align-items: center; gap: 14px; }
+      .pb-search { width: 640px; height: 50px; border-radius: 13px; display: flex; align-items: center; gap: 12px; padding: 0 16px; background: #fff; border: 1.5px solid var(--orange-500); box-shadow: 0 0 0 4px rgba(255, 121, 11, 0.15); font: 400 16px/1 var(--font-body); color: var(--n600); }
+      .pb-search .ic { width: 20px; height: 20px; }
+      .pb-search .caret-in { width: 1.5px; height: 22px; flex: none; margin-right: -10px; background: var(--n900); }
+      .pb-count { font: 400 14px/1 var(--font-body); color: var(--n600); }
+      .pb-chips { display: flex; align-items: center; gap: 8px; padding: 12px 0 16px; }
+      .chip { flex: none; display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border-radius: 999px; border: 1.5px solid var(--n300); background: #fff; font: 600 14px/1 var(--font-body); letter-spacing: 0.01em; color: var(--n600); white-space: nowrap; }
+      .chip .n { font-size: 12.5px; font-weight: 700; }
+      .chip .ic { width: 16px; height: 16px; }
+      .chip.is-active { background: var(--navy-900); border-color: transparent; color: #fff; }
+      .chip.is-active .ic { color: var(--orange-400); }
+      .chip.is-active .n { color: rgba(255, 255, 255, 0.72); }
+      .chip--feat .ic { fill: var(--orange-500); stroke: none; }
+      .chipsep { flex: none; width: 1px; height: 22px; margin: 0 4px; background: var(--n300); }
+      .chip--more { margin-left: auto; border-color: transparent; background: var(--n100); }
+
+      .pb-body { flex: 1; min-height: 0; display: flex; }
+      .pb-list { flex: 1; min-width: 0; padding: 4px 10px; background: #fff; }
+      .pb-gp { padding: 14px 12px 8px; font: 700 12.5px/1 var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--n600); }
+      .pb-row { display: flex; align-items: center; gap: 14px; height: 66px; padding: 0 14px; border-radius: 14px; }
+      .pb-row.is-sel { background: var(--sel-tint); box-shadow: inset 0 0 0 1px var(--sel-line); }
+      .av { flex: none; display: grid; place-items: center; background: var(--av-tint); color: var(--orange-600); }
+      .av--sm { width: 46px; height: 46px; border-radius: 14px; }
+      .av--sm .ic { width: 23px; height: 23px; }
+      .av--lg { width: 80px; height: 80px; margin: 0 auto; border-radius: 24px; }
+      .av--lg .ic { width: 40px; height: 40px; stroke-width: 1.75; }
+      .pb-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+      .pb-meta b { font: 600 16px/1.1 var(--font-body); color: var(--n900); white-space: nowrap; }
+      .pb-meta span { font: 500 14px/1 var(--font-mono); color: var(--n600); }
+      .pb-tags { display: flex; gap: 6px; }
+      .tag { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; }
+      .tag .ic { width: 15px; height: 15px; }
+      .tag--mail { background: var(--info-tint); color: var(--info); }
+      .tag--wa { background: var(--success-tint); color: var(--success); }
+      .tag--alarm { background: var(--error-tint); color: var(--error); }
+
+      .pb-detail { width: 400px; flex: none; overflow: hidden; background: #fff; border-left: 1px solid var(--n200); }
+      .pb-dtop { padding: 26px 24px 20px; text-align: center; border-bottom: 1px solid var(--n200); background: linear-gradient(180deg, var(--n100), #fff); }
+      .pb-dname { margin-top: 12px; font: 700 22px/1.1 var(--font-display); color: var(--n900); }
+      .pb-ddept { margin-top: 6px; font: 600 14px/1 var(--font-body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--orange-700); }
+      .pb-dbody { padding: 20px 24px; display: flex; flex-direction: column; gap: 18px; }
+      .pb-flabel { display: block; font: 700 12px/1 var(--font-body); letter-spacing: 0.08em; text-transform: uppercase; color: var(--n600); }
+      .pb-fval { display: block; margin-top: 6px; font: 400 16px/1.3 var(--font-body); color: var(--n900); }
+      .pb-fval--mono { font-family: var(--font-mono); font-weight: 500; }
+      .pb-fval--link { font-weight: 600; color: var(--primary-600); }
+      .pb-act { display: flex; align-items: center; gap: 14px; height: 58px; padding: 0 14px; border-radius: 14px; border: 1.5px solid var(--n300); font: 600 16px/1 var(--font-body); color: var(--n900); }
+      .pb-act + .pb-act { margin-top: 8px; }
+      .pb-aico { width: 38px; height: 38px; flex: none; border-radius: 11px; display: grid; place-items: center; }
+      .pb-aico .ic { width: 20px; height: 20px; }
+      .pb-act .go { width: 18px; height: 18px; margin-left: auto; color: var(--n600); }
+      .pb-act--call .pb-aico { background: linear-gradient(135deg, var(--orange-500), var(--orange-600)); color: #fff; }
+      .pb-act--copy .pb-aico { background: var(--copy-tint); color: var(--navy-700); }
+
+      /* caixa "Favorito adicionado" (left 722 / top 124 na janela) */
+      .dialog { position: absolute; left: 722px; top: 124px; width: 540px; height: 314px; z-index: 6; border-radius: 16px; background: #fff; opacity: 0; transform-origin: 94% 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15), 0 24px 60px rgba(0, 0, 0, 0.28); }
+      .dlg-title { position: absolute; left: 28px; top: 24px; font: 500 27px/1 var(--font-body); color: var(--cr-ink); }
+      .dlg-label { position: absolute; left: 28px; font: 500 20px/1 var(--font-body); color: var(--cr-label); }
+      .dlg-label--nome { top: 100px; }
+      .dlg-label--pasta { top: 166px; }
+      .field { position: absolute; left: 128px; width: 384px; height: 48px; border-radius: 8px; display: flex; align-items: center; padding: 0 14px; font: 400 20px/1 var(--font-body); color: var(--cr-ink); }
+      .field--nome { top: 86px; border: 2px solid var(--cr-blue); }
+      .field--nome mark { padding: 5px 0; background: var(--cr-select); color: var(--cr-ink); }
+      /* digitação: um estado por letra, empilhados no mesmo lugar (sequência discreta, segura no seek) */
+      .typed { position: absolute; left: 14px; top: 0; height: 100%; display: flex; align-items: center; white-space: nowrap; opacity: 0; }
+      .caret { display: block; width: 2px; height: 26px; margin-left: 2px; background: var(--cr-ink); }
+      .field--pasta { top: 152px; justify-content: space-between; border: 1.5px solid var(--cr-outline); }
+      .field--pasta .ic { width: 22px; height: 22px; color: var(--cr-icon); }
+      .pasta-focus { position: absolute; left: 128px; top: 152px; width: 384px; height: 48px; border-radius: 8px; border: 2px solid var(--cr-blue); opacity: 0; }
+      .btn { position: absolute; top: 240px; height: 46px; border-radius: 23px; display: grid; place-items: center; font: 500 20px/1 var(--font-body); }
+      .btn--remover { left: 262px; width: 116px; border: 1.5px solid var(--cr-outline); color: var(--cr-blue); }
+      .btn--ok { left: 390px; width: 122px; background: var(--cr-blue); color: #fff; }
+      .menu { position: absolute; left: 128px; top: 204px; width: 384px; height: 154px; z-index: 2; padding: 8px 0; border-radius: 10px; background: #fff; opacity: 0; transform-origin: 50% 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.14), 0 16px 40px rgba(0, 0, 0, 0.24); }
+      .opt-hover { position: absolute; left: 0; right: 0; top: 8px; height: 46px; background: var(--cr-hover); opacity: 0; }
+      .opt { position: relative; height: 46px; display: flex; align-items: center; gap: 12px; padding: 0 16px; font: 400 20px/1 var(--font-body); color: var(--cr-ink); }
+      .opt .ic { width: 20px; height: 20px; color: var(--cr-blue); stroke-width: 2.4; }
+      .opt-gap { width: 20px; flex: none; }
+
+      /* camada de interação no mundo: anéis, ondas, balão de atalho e cursor */
+      .ring { position: absolute; border: 3px solid var(--orange-400); opacity: 0; box-shadow: 0 0 0 6px rgba(255, 149, 56, 0.22), 0 0 24px rgba(255, 149, 56, 0.35); }
+      #ring-nome { left: 942px; top: 236px; width: 400px; height: 64px; border-radius: 14px; }
+      #ring-select { left: 942px; top: 302px; width: 400px; height: 64px; border-radius: 14px; }
+      #ring-done { left: 1204px; top: 390px; width: 138px; height: 62px; border-radius: 31px; }
+      #ring-chip { left: 104px; top: 159px; width: 148px; height: 50px; border-radius: 25px; }
+      .ripple { position: absolute; width: 64px; height: 64px; border-radius: 50%; border: 3px solid var(--orange-400); opacity: 0; }
+      #rp-star { left: 1302px; top: 97px; }
+      #rp-select { left: 1118px; top: 304px; }
+      #rp-option { left: 1158px; top: 363px; }
+      #rp-done { left: 1294px; top: 404px; }
+      #rp-chip { left: 200px; top: 160px; }
+      .callout { position: absolute; left: 1052px; top: 40px; width: 304px; height: 54px; border-radius: 14px; display: flex; align-items: center; justify-content: center; gap: 10px; background: var(--navy-900); border: 1.5px solid rgba(255, 255, 255, 0.18); font: 500 21px/1 var(--font-body); color: #fff; opacity: 0; transform-origin: 92% 100%; box-shadow: 0 12px 30px rgba(5, 14, 51, 0.45); }
+      .callout::after { content: ""; position: absolute; right: 16px; bottom: -9px; width: 16px; height: 16px; background: var(--navy-900); border-right: 1.5px solid rgba(255, 255, 255, 0.18); border-bottom: 1.5px solid rgba(255, 255, 255, 0.18); transform: rotate(45deg); }
+      .callout kbd { min-width: 36px; height: 36px; padding: 0 10px; border-radius: 8px; font-size: 18px; box-shadow: inset 0 -3px 0 var(--n300); }
+      .cursor { position: absolute; left: 0; top: 0; width: 36px; height: 54px; z-index: 10; opacity: 0; transform-origin: 0 0; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.35)); }
+
+      /* ---------- 4 · teclas Ctrl + Shift + B (fixas, fora da câmera) ---------- */
+      .keys { position: absolute; left: 0; right: 0; top: 842px; width: max-content; margin: 0 auto; display: flex; align-items: center; gap: 16px; padding: 18px 28px; border-radius: 22px; background: rgba(5, 14, 51, 0.88); border: 1.5px solid rgba(255, 255, 255, 0.16); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4); opacity: 0; }
+      .key { min-width: 64px; height: 64px; padding: 0 20px; border-radius: 12px; font-size: 28px; box-shadow: inset 0 -5px 0 var(--n300); }
+      .key-plus { font: 600 30px/1 var(--font-body); color: rgba(255, 255, 255, 0.8); }
+
+      /* ---------- 5 · fim: "Pronto!" ---------- */
+      .end { position: absolute; inset: 0; z-index: 20; overflow: hidden; opacity: 0; background: radial-gradient(90% 80% at 85% 50%, var(--navy-700) 0%, var(--navy-900) 48%, var(--navy-950) 100%); }
+      /* a marca do FOCO-OS como arte: anéis bem leves, a seta laranja presente */
+      .end-art { position: absolute; width: 820px; height: 765px; right: -220px; top: 50%; margin-top: -382px; }
+      .end-art img { position: absolute; inset: 0; width: 100%; height: 100%; }
+      .end-rings { opacity: 0.14; }
+      .end-chevron { opacity: 0.9; }
+      .end-content { position: absolute; left: 150px; top: 0; bottom: 0; width: 900px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 26px; }
+      .end-seal { width: 150px; height: 150px; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(135deg, var(--amber-light), var(--amber)); box-shadow: 0 30px 80px rgba(249, 160, 6, 0.35); opacity: 0; }
+      .end-seal svg { width: 84px; height: 84px; fill: none; stroke: var(--navy-950); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+      .end-title { font: 600 150px/0.95 var(--font-display); letter-spacing: -0.025em; opacity: 0; }
+      .end-sub { max-width: 700px; font: 500 40px/1.25 var(--font-body); color: rgba(255, 255, 255, 0.88); opacity: 0; }
+      .end-lockup { position: absolute; left: 150px; bottom: 70px; display: flex; align-items: center; gap: 14px; opacity: 0; }
+      .end-lockup-mark { width: 56px; height: 52px; flex: none; background: url("assets/img/foco-mark-dark.png") center / contain no-repeat; }
+      .wm { font: 600 46px/1 var(--font-display); letter-spacing: -0.02em; color: #fff; white-space: nowrap; }
+      .wm-dot { font-family: var(--font-mono); font-weight: 500; color: var(--orange-500); margin: 0 1px; }
+      .wm-os { font-family: var(--font-mono); font-weight: 500; font-size: 0.85em; letter-spacing: 0.06em; }
+    </style>
+  </head>
+  <body>
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <defs>
+        <symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7" /></symbol>
+        <symbol id="i-fwd" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7" /></symbol>
+        <symbol id="i-reload" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.34-5.66" /><path d="M20 4v5h-5" /></symbol>
+        <symbol id="i-tune" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9" /><circle cx="15" cy="7" r="2" /><circle cx="9" cy="17" r="2" /></symbol>
+        <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6L12 17l-5.4 2.8 1-6L3.2 9.4l6.1-.9z" /></symbol>
+        <symbol id="i-person" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></symbol>
+        <symbol id="i-kebab" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.4" /><circle cx="12" cy="12" r="1.4" /><circle cx="12" cy="19" r="1.4" /></symbol>
+        <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12" /></symbol>
+        <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></symbol>
+        <symbol id="i-min" viewBox="0 0 24 24"><path d="M5 12h14" /></symbol>
+        <symbol id="i-max" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="1" /></symbol>
+        <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></symbol>
+        <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6" /></symbol>
+        <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" /></symbol>
+        <symbol id="i-check" viewBox="0 0 24 24"><path d="m20 6-11 11-5-5" /></symbol>
+        <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></symbol>
+        <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" /></symbol>
+        <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></symbol>
+        <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 2 9 5-9 5-9-5 9-5z" /><path d="m3 12 9 5 9-5" /><path d="m3 17 9 5 9-5" /></symbol>
+        <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" /></symbol>
+        <symbol id="i-store" viewBox="0 0 24 24"><path d="M3 21h18M4 21V8h16v13M4 8 6 3h12l2 5M9 21v-6h6v6" /></symbol>
+        <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></symbol>
+        <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 9a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0" /></symbol>
+        <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></symbol>
+        <symbol id="i-whatsapp" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21 5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2Zm5.8 14.01c-.24.68-1.42 1.31-1.95 1.36-.5.05-.97.24-3.28-.69-2.76-1.09-4.52-3.92-4.66-4.1-.14-.18-1.12-1.49-1.12-2.85 0-1.36.71-2.02.97-2.3.24-.27.53-.34.71-.34l.51.01c.16.01.39-.06.6.46.24.58.81 2 .88 2.15.07.14.12.31.02.49-.09.18-.14.29-.27.45-.14.16-.29.36-.41.48-.14.14-.28.29-.12.57.16.27.71 1.17 1.53 1.9 1.05.94 1.94 1.23 2.21 1.37.27.14.43.12.59-.07.16-.18.68-.79.86-1.07.18-.27.36-.22.6-.13.25.09 1.58.75 1.85.89.27.14.45.2.51.31.07.11.07.63-.17 1.31Z" /></symbol>
+      </defs>
+    </svg>
+
+    <div
+      id="root"
+      data-composition-id="lista-favoritos"
+      data-start="0"
+      data-duration="22.5"
+      data-fps="30"
+      data-width="1600"
+      data-height="1000"
+    >
+      <div id="scene">
+        <!-- 1 · arte de fundo -->
+        <div class="bg" aria-hidden="true">
+          <div id="glow-blue" class="glow glow-blue" data-layout-allow-overflow="true"></div>
+          <div id="glow-orange" class="glow glow-orange" data-layout-allow-overflow="true"></div>
+        </div>
+
+        <!-- 2 · faixa de cima (as legendas se cruzam na troca: sobreposição intencional) -->
+        <header class="band" data-layout-allow-occlusion="true">
+          <p class="band-eyebrow">Salve o FOCO-OS nos favoritos do Chrome</p>
+          <div id="row-1" class="band-row">
+            <span class="band-num">1</span>
+            <p class="band-text" data-layout-allow-overlap="true">Clique na estrela <svg class="ic"><use href="#i-star" /></svg> no fim da barra de endereço</p>
+            <span class="band-count" data-layout-allow-overlap="true">Passo 1 de 4</span>
+          </div>
+          <div id="row-2" class="band-row">
+            <span class="band-num">2</span>
+            <p class="band-text" data-layout-allow-overlap="true"><span data-layout-allow-overlap="true">Em <b>Nome</b>, escreva <b>FOCO-OS</b></span></p>
+            <span class="band-count" data-layout-allow-overlap="true">Passo 2 de 4</span>
+          </div>
+          <div id="row-3" class="band-row">
+            <span class="band-num">3</span>
+            <p class="band-text" data-layout-allow-overlap="true"><span data-layout-allow-overlap="true">Escolha <b>Barra de favoritos</b> e clique em <b>Concluído</b></span></p>
+            <span class="band-count" data-layout-allow-overlap="true">Passo 3 de 4</span>
+          </div>
+          <div id="row-4" class="band-row">
+            <span class="band-num">4</span>
+            <p class="band-text" data-layout-allow-overlap="true">Mostre a barra de favoritos: <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>B</kbd></p>
+            <span class="band-count" data-layout-allow-overlap="true">Passo 4 de 4</span>
+          </div>
+          <div id="row-5" class="band-row">
+            <span class="band-num band-num--ok"><svg class="ic"><use href="#i-check" /></svg></span>
+            <p class="band-text" data-layout-allow-overlap="true"><span data-layout-allow-overlap="true">Agora é só clicar em <b>FOCO-OS</b> na barra</span></p>
+          </div>
+          <div class="band-track"><div id="band-fill" class="band-fill"></div></div>
+        </header>
+
+        <!-- 3 · palco -->
+        <div class="stage">
+          <div id="cam-outer" class="cam-outer" data-layout-allow-overflow="true">
+            <div id="cam-inner" class="cam-inner">
+              <div id="browser" class="browser">
+                <div class="tabstrip">
+                  <div class="tab">
+                    <img class="tab-fav" src="assets/img/foco-favicon.png" alt="" />
+                    <span class="tab-title">Lista Telefônica · FOCO-OS</span>
+                    <svg class="ic"><use href="#i-x" /></svg>
+                  </div>
+                  <svg class="ic tab-new"><use href="#i-plus" /></svg>
+                  <div class="winctl">
+                    <span><svg class="ic"><use href="#i-min" /></svg></span>
+                    <span><svg class="ic"><use href="#i-max" /></svg></span>
+                    <span><svg class="ic"><use href="#i-x" /></svg></span>
+                  </div>
+                </div>
+
+                <div class="toolbar">
+                  <svg class="ic tb-ic" style="left: 22px"><use href="#i-back" /></svg>
+                  <svg class="ic tb-ic" style="left: 68px"><use href="#i-fwd" /></svg>
+                  <svg class="ic tb-ic" style="left: 114px"><use href="#i-reload" /></svg>
+                  <div class="omni">
+                    <svg class="ic omni-tune"><use href="#i-tune" /></svg>
+                    <span class="url"><span class="url-host">rntintas.foco-os.com</span><span class="url-path">/lista-telefonica/</span></span>
+                    <div id="star" class="star">
+                      <span id="star-hover" class="star-hover"></span>
+                      <svg id="star-outline" class="ic star-outline"><use href="#i-star" /></svg>
+                      <svg id="star-filled" class="ic star-filled"><use href="#i-star" /></svg>
+                    </div>
+                  </div>
+                  <span class="avatar"><svg class="ic"><use href="#i-person" /></svg></span>
+                  <svg class="ic tb-ic" style="left: 1342px"><use href="#i-kebab" /></svg>
+                </div>
+
+                <div id="bmbar" class="bmbar">
+                  <div id="bm-chip" class="bm-chip">
+                    <span id="bm-hover" class="bm-hover"></span>
+                    <span class="bm-fav"></span>
+                    <span class="bm-name">FOCO-OS</span>
+                  </div>
+                  <div id="bm-all" class="bm-all"><svg class="ic"><use href="#i-folder" /></svg>Todos os favoritos</div>
+                </div>
+
+                <!-- a Lista completa (lojas, telefones e e-mail inventados) -->
+                <div id="page" class="page" data-layout-ignore="true">
+                  <aside class="side">
+                    <div class="side-brand">
+                      <img src="assets/img/foco-mark-dark.png" alt="" />
+                      <div><strong>FOCO<b>·</b>OS</strong><span>RN Tintas</span></div>
+                    </div>
+                    <div class="side-label">Navegação</div>
+                    <div class="side-item"><svg class="ic lead"><use href="#i-grid" /></svg>Início</div>
+                    <div class="side-item is-on"><svg class="ic lead"><use href="#i-layers" /></svg>Lista Telefônica</div>
+                    <div class="side-label">Lista Telefônica</div>
+                    <div class="side-item is-on"><svg class="ic lead"><use href="#i-phone" /></svg>Lista Telefônica<svg class="ic chev"><use href="#i-chevron" /></svg></div>
+                    <ul class="side-sub">
+                      <li class="is-on"><span class="dot"></span>Lista completa</li>
+                      <li><span class="dot"></span>Gestão</li>
+                    </ul>
+                  </aside>
+
+                  <div class="main">
+                    <div class="topbar page-in">
+                      <span class="toggle"><svg class="ic"><use href="#i-menu" /></svg></span>
+                      <span class="crumbs">Lista Telefônica<svg class="ic"><use href="#i-chevron-right" /></svg><b>Lista completa</b></span>
+                    </div>
+
+                    <div class="pb-toolbar page-in">
+                      <div class="pb-searchrow">
+                        <div class="pb-search"><svg class="ic"><use href="#i-search" /></svg><i class="caret-in"></i>Buscar por nome, departamento ou telefone…</div>
+                        <span class="pb-count">140 contatos</span>
+                      </div>
+                      <div class="pb-chips">
+                        <span class="chip is-active"><svg class="ic"><use href="#i-grid" /></svg>Todos<span class="n">140</span></span>
+                        <span class="chip chip--feat"><svg class="ic"><use href="#i-star" /></svg>Em destaque<span class="n">0</span></span>
+                        <span class="chipsep"></span>
+                        <span class="chip">LOJAS SUL<span class="n">20</span></span>
+                        <span class="chip">LOJAS NORTE<span class="n">18</span></span>
+                        <span class="chip">LOJAS LESTE<span class="n">20</span></span>
+                        <span class="chip">CENTRAL<span class="n">9</span></span>
+                        <span class="chip chip--more"><span class="n">+24</span><svg class="ic"><use href="#i-chevron" /></svg></span>
+                      </div>
+                    </div>
+
+                    <div class="pb-body">
+                      <div class="pb-list">
+                        <div class="pb-gp page-in">Lojas Sul</div>
+                        <div class="pb-row page-in">
+                          <span class="av av--sm"><svg class="ic"><use href="#i-store" /></svg></span>
+                          <span class="pb-meta"><b>011 - RN - AL</b><span>(35) 3000-0101</span></span>
+                          <span class="pb-tags"><span class="tag tag--mail"><svg class="ic"><use href="#i-mail" /></svg></span><span class="tag tag--wa"><svg class="ic"><use href="#i-whatsapp" /></svg></span><span class="tag tag--alarm"><svg class="ic"><use href="#i-bell" /></svg></span></span>
+                        </div>
+                        <div class="pb-row is-sel page-in">
+                          <span class="av av--sm"><svg class="ic"><use href="#i-store" /></svg></span>
+                          <span class="pb-meta"><b>014 - RN - BV</b><span>(35) 3000-0102</span></span>
+                          <span class="pb-tags"><span class="tag tag--mail"><svg class="ic"><use href="#i-mail" /></svg></span><span class="tag tag--wa"><svg class="ic"><use href="#i-whatsapp" /></svg></span><span class="tag tag--alarm"><svg class="ic"><use href="#i-bell" /></svg></span></span>
+                        </div>
+                        <div class="pb-row page-in">
+                          <span class="av av--sm"><svg class="ic"><use href="#i-store" /></svg></span>
+                          <span class="pb-meta"><b>019 - RN - CP</b><span>(35) 3000-0103</span></span>
+                          <span class="pb-tags"><span class="tag tag--mail"><svg class="ic"><use href="#i-mail" /></svg></span><span class="tag tag--wa"><svg class="ic"><use href="#i-whatsapp" /></svg></span><span class="tag tag--alarm"><svg class="ic"><use href="#i-bell" /></svg></span></span>
+                        </div>
+                        <div class="pb-row page-in">
+                          <span class="av av--sm"><svg class="ic"><use href="#i-store" /></svg></span>
+                          <span class="pb-meta"><b>022 - RN - DM</b><span>(35) 3000-0104</span></span>
+                          <span class="pb-tags"><span class="tag tag--mail"><svg class="ic"><use href="#i-mail" /></svg></span><span class="tag tag--wa"><svg class="ic"><use href="#i-whatsapp" /></svg></span><span class="tag tag--alarm"><svg class="ic"><use href="#i-bell" /></svg></span></span>
+                        </div>
+                        <div class="pb-row page-in">
+                          <span class="av av--sm"><svg class="ic"><use href="#i-store" /></svg></span>
+                          <span class="pb-meta"><b>001 - RN - MATRIZ | CAIXA</b><span>(35) 3000-0105</span></span>
+                          <span class="pb-tags"><span class="tag tag--mail"><svg class="ic"><use href="#i-mail" /></svg></span><span class="tag tag--alarm"><svg class="ic"><use href="#i-bell" /></svg></span></span>
+                        </div>
+                        <div class="pb-row page-in">
+                          <span class="av av--sm"><svg class="ic"><use href="#i-store" /></svg></span>
+                          <span class="pb-meta"><b>001 - RN - MATRIZ | BALCÃO</b><span>(35) 3000-0106</span></span>
+                        </div>
+                      </div>
+
+                      <div class="pb-detail">
+                        <div class="pb-dtop page-in">
+                          <span class="av av--lg"><svg class="ic"><use href="#i-store" /></svg></span>
+                          <p class="pb-dname">014 - RN - BV</p>
+                          <p class="pb-ddept">Lojas Sul</p>
+                        </div>
+                        <div class="pb-dbody page-in">
+                          <div><span class="pb-flabel">Telefone</span><span class="pb-fval pb-fval--mono">(35) 3000-0102</span></div>
+                          <div><span class="pb-flabel">Atribuições</span><span class="pb-fval">Gerência da loja</span></div>
+                          <div><span class="pb-flabel">E-mail</span><span class="pb-fval pb-fval--link">loja.exemplo@rntintas.com.br</span></div>
+                          <div>
+                            <div class="pb-act pb-act--call"><span class="pb-aico"><svg class="ic"><use href="#i-phone" /></svg></span>Ligar agora<svg class="ic go"><use href="#i-chevron-right" /></svg></div>
+                            <div class="pb-act pb-act--copy"><span class="pb-aico"><svg class="ic"><use href="#i-copy" /></svg></span>Copiar número<svg class="ic go"><use href="#i-chevron-right" /></svg></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- a caixa e o menu cobrem a página de propósito (como no Chrome) -->
+                <div id="dialog" class="dialog" data-layout-allow-occlusion="true">
+                  <p class="dlg-title" data-layout-allow-overlap="true">Favorito adicionado</p>
+                  <span class="dlg-label dlg-label--nome" data-layout-allow-overlap="true">Nome</span>
+                  <div class="field field--nome" data-layout-allow-overlap="true">
+                    <mark id="nome-sel" data-layout-allow-overlap="true">Lista Telefônica · FOCO-OS</mark>
+                    <span id="ty-1" class="typed" data-layout-allow-overlap="true">F<i class="caret"></i></span>
+                    <span id="ty-2" class="typed" data-layout-allow-overlap="true">FO<i class="caret"></i></span>
+                    <span id="ty-3" class="typed" data-layout-allow-overlap="true">FOC<i class="caret"></i></span>
+                    <span id="ty-4" class="typed" data-layout-allow-overlap="true">FOCO<i class="caret"></i></span>
+                    <span id="ty-5" class="typed" data-layout-allow-overlap="true">FOCO-<i class="caret"></i></span>
+                    <span id="ty-6" class="typed" data-layout-allow-overlap="true">FOCO-O<i class="caret"></i></span>
+                    <span id="ty-7" class="typed" data-layout-allow-overlap="true">FOCO-OS<i id="caret-final" class="caret"></i></span>
+                  </div>
+                  <span class="dlg-label dlg-label--pasta" data-layout-allow-overlap="true">Pasta</span>
+                  <div id="field-pasta" class="field field--pasta" data-layout-allow-overlap="true">Barra de favoritos<svg class="ic"><use href="#i-chevron" /></svg></div>
+                  <div id="pasta-focus" class="pasta-focus"></div>
+                  <div id="btn-remover" class="btn btn--remover" data-layout-allow-overlap="true">Remover</div>
+                  <div id="btn-ok" class="btn btn--ok" data-layout-allow-overlap="true">Concluído</div>
+                  <div id="menu" class="menu" data-layout-allow-occlusion="true">
+                    <span id="opt-hover" class="opt-hover"></span>
+                    <div id="opt-1" class="opt" data-layout-allow-overlap="true"><svg class="ic"><use href="#i-check" /></svg>Barra de favoritos</div>
+                    <div class="opt" data-layout-allow-overlap="true"><span class="opt-gap"></span>Outros favoritos</div>
+                    <div class="opt" data-layout-allow-overlap="true"><span class="opt-gap"></span>Escolher outra pasta…</div>
+                  </div>
+                </div>
+              </div>
+
+              <div id="callout" class="callout">ou aperte <kbd>Ctrl</kbd> + <kbd>D</kbd></div>
+              <div id="ring-nome" class="ring"></div>
+              <div id="ring-select" class="ring"></div>
+              <div id="ring-done" class="ring"></div>
+              <div id="ring-chip" class="ring"></div>
+              <div id="rp-star" class="ripple"></div>
+              <div id="rp-select" class="ripple"></div>
+              <div id="rp-option" class="ripple"></div>
+              <div id="rp-done" class="ripple"></div>
+              <div id="rp-chip" class="ripple"></div>
+              <div id="cursor" class="cursor">
+                <svg viewBox="0 0 24 36" width="36" height="54" aria-hidden="true">
+                  <path d="M1.5 1.5v26l6.1-5.9 4 9.6 4-1.6-3.9-9.4H20z" fill="#fff" stroke="#0f111a" stroke-width="1.6" stroke-linejoin="round" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 · teclas (ficam por cima da lista de propósito) -->
+        <div id="keys" class="keys" data-layout-allow-occlusion="true">
+          <kbd id="key-ctrl" class="key" data-layout-allow-overlap="true">Ctrl</kbd><span class="key-plus" data-layout-allow-overlap="true">+</span><kbd id="key-shift" class="key" data-layout-allow-overlap="true">Shift</kbd><span class="key-plus" data-layout-allow-overlap="true">+</span><kbd id="key-b" class="key" data-layout-allow-overlap="true">B</kbd>
+        </div>
+
+        <!-- 5 · fim (cobre a cena inteira de propósito) -->
+        <div id="end" class="end" data-layout-allow-occlusion="true">
+          <div id="end-art" class="end-art" aria-hidden="true" data-layout-allow-overflow="true">
+            <img class="end-rings" src="assets/img/foco-rings-1200.png" alt="" />
+            <img class="end-chevron" src="assets/img/foco-chevron-1200.png" alt="" />
+          </div>
+          <div class="end-content">
+            <div id="end-seal" class="end-seal">
+              <svg viewBox="0 0 24 24"><path id="end-check" d="m20 6-11 11-5-5" stroke-dasharray="24" stroke-dashoffset="24" /></svg>
+            </div>
+            <p id="end-title" class="end-title" data-layout-allow-overlap="true">Pronto!</p>
+            <p id="end-sub" class="end-sub" data-layout-allow-overlap="true">Agora o FOCO-OS fica a um clique, com a Lista Telefônica lá dentro.</p>
+          </div>
+          <div id="end-lockup" class="end-lockup">
+            <span class="end-lockup-mark"></span>
+            <span class="wm" data-layout-allow-overlap="true">foco<span class="wm-dot">·</span><span class="wm-os">OS</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Fora do HyperFrames (página do aviso) o runtime não cria o registro: cria aqui.
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const DURACAO = 22.5; // = data-duration do #root
+
+      // Cores animadas (o resto vive nos tokens do CSS)
+      const C = { keyUp: "#ffffff", keyDown: "#e3e7ef" };
+
+      // A ponta do cursor cai dentro de cada alvo, à direita do texto, para não cobrir o rótulo.
+      // As ondas (#rp-*) ficam centradas nesses mesmos pontos (mundo: palco 1600×850, janela em 100/34).
+      const P = {
+        start: [1120, 640],
+        star: [1334, 129],
+        select: [1150, 336],
+        option: [1190, 395],
+        done: [1326, 436],
+        rest: [720, 480],
+        chip: [232, 192],
+      };
+      // Câmera em dois wrappers: o externo escala no centro, o interno contra-translada (T = -offset).
+      const CAM_A = { s: 1.5, x: -290, y: 140 }; // estrela + "Favorito adicionado" (centro 1090,285)
+      const CAM_B = { s: 1.5, x: 233, y: 105 }; // barra de favoritos (centro 567,320): a borda cai entre a lista e o detalhe
+
+      function moveCursor(to, at, dur, ease) {
+        tl.to("#cursor", { x: to[0], y: to[1], duration: dur, ease: ease }, at);
+      }
+      // Clique: cursor e alvo afundam juntos; a onda sai do ponto do clique.
+      function click(at, target, ripple) {
+        tl.to("#cursor", { scale: 0.84, duration: 0.08, ease: "power2.in", yoyo: true, repeat: 1 }, at);
+        tl.to(target, { scale: 0.95, duration: 0.08, ease: "power2.in", yoyo: true, repeat: 1 }, at);
+        tl.fromTo(
+          ripple,
+          { autoAlpha: 1, scale: 0.3 },
+          { autoAlpha: 0, scale: 3.2, duration: 0.65, ease: "power2.out", immediateRender: false },
+          at + 0.03,
+        );
+      }
+      // Troca de legenda na faixa: a anterior sai para a direita, a nova entra da esquerda.
+      function showRow(id, at, fill) {
+        tl.fromTo(id, { autoAlpha: 0, x: -28 }, { autoAlpha: 1, x: 0, duration: 0.55, ease: "power3.out" }, at);
+        tl.fromTo(id + " .band-num", { scale: 0.5 }, { scale: 1, duration: 0.5, ease: "back.out(2)" }, at + 0.05);
+        if (fill !== undefined) tl.to("#band-fill", { scaleX: fill, duration: 0.7, ease: "power2.inOut" }, at + 0.1);
+      }
+      function hideRow(id, at) {
+        tl.to(id, { autoAlpha: 0, x: 18, duration: 0.28, ease: "power2.in" }, at);
+      }
+
+      // 0 · quadro inicial + fundo vivo (deriva de ida e volta: o loop emenda sem salto)
+      tl.set("#band-fill", { scaleX: 0 }, 0);
+      tl.to("#glow-blue", { x: 70, y: 40, duration: DURACAO / 2, ease: "sine.inOut", yoyo: true, repeat: 1 }, 0);
+      tl.to("#glow-orange", { x: -60, y: -30, duration: DURACAO / 2, ease: "sine.inOut", yoyo: true, repeat: 1 }, 0);
+
+      // 1 · o Chrome abre na Lista completa do FOCO-OS
+      tl.fromTo("#browser", { autoAlpha: 0, y: 40, scale: 0.965 }, { autoAlpha: 1, y: 0, scale: 1, duration: 0.8, ease: "power3.out" }, 0.2);
+      tl.fromTo(".page-in", { autoAlpha: 0, y: 14 }, { autoAlpha: 1, y: 0, duration: 0.45, ease: "power2.out", stagger: 0.04 }, 0.5);
+      tl.fromTo("#cursor", { autoAlpha: 0, x: P.start[0], y: P.start[1] }, { autoAlpha: 1, x: P.start[0], y: P.start[1], duration: 0.3, ease: "power1.out" }, 0.9);
+
+      // 2 · passo 1 — a câmera chega na barra de endereço e o cursor clica na estrela
+      showRow("#row-1", 1.1, 1 / 4);
+      tl.fromTo("#cam-outer", { scale: 1 }, { scale: CAM_A.s, duration: 1.35, ease: "power3.inOut" }, 1.3);
+      tl.fromTo("#cam-inner", { x: 0, y: 0 }, { x: CAM_A.x, y: CAM_A.y, duration: 1.35, ease: "power3.inOut" }, 1.3);
+      moveCursor(P.star, 2.25, 0.85, "power2.inOut");
+      tl.fromTo("#callout", { autoAlpha: 0, y: 10, scale: 0.94 }, { autoAlpha: 1, y: 0, scale: 1, duration: 0.4, ease: "back.out(1.6)" }, 2.75);
+      tl.fromTo("#star-hover", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.15, ease: "power1.out" }, 3.05);
+      click(3.55, "#star", "#rp-star");
+      tl.to("#star-outline", { autoAlpha: 0, duration: 0.12, ease: "power1.in" }, 3.6);
+      tl.fromTo("#star-filled", { autoAlpha: 0, scale: 0.5 }, { autoAlpha: 1, scale: 1, duration: 0.4, ease: "back.out(2.4)" }, 3.6);
+      tl.fromTo("#dialog", { autoAlpha: 0, scale: 0.94, y: -10 }, { autoAlpha: 1, scale: 1, y: 0, duration: 0.45, ease: "back.out(1.4)" }, 3.85);
+      tl.to("#star-hover", { autoAlpha: 0, duration: 0.2, ease: "power1.in" }, 3.9);
+      tl.to("#callout", { autoAlpha: 0, y: -6, duration: 0.3, ease: "power2.in" }, 5.1);
+
+      // 3 · passo 2 — Em Nome, escreva FOCO-OS (o Chrome já deixa o nome selecionado: é só digitar)
+      hideRow("#row-1", 5.3);
+      showRow("#row-2", 5.5, 2 / 4);
+      tl.fromTo("#ring-nome", { autoAlpha: 0, scale: 1.08 }, { autoAlpha: 1, scale: 1, duration: 0.35, ease: "power3.out" }, 5.75);
+      const DIGITA = 6.25;
+      const LETRA = 0.14;
+      tl.set("#nome-sel", { autoAlpha: 0 }, DIGITA);
+      for (let i = 1; i <= 7; i++) {
+        const at = DIGITA + (i - 1) * LETRA;
+        if (i > 1) tl.set("#ty-" + (i - 1), { autoAlpha: 0 }, at);
+        tl.set("#ty-" + i, { autoAlpha: 1 }, at);
+      }
+      tl.to("#caret-final", { opacity: 0, duration: 0.05, ease: "none", yoyo: true, repeat: 5, repeatDelay: 0.4 }, 7.35);
+      tl.to("#ring-nome", { autoAlpha: 0, duration: 0.2, ease: "power1.in" }, 7.7);
+
+      // 4 · passo 3 — Pasta: Barra de favoritos → Concluído
+      hideRow("#row-2", 8.05);
+      showRow("#row-3", 8.25, 3 / 4);
+      moveCursor(P.select, 8.35, 0.7, "power2.inOut");
+      tl.fromTo("#ring-select", { autoAlpha: 0, scale: 1.08 }, { autoAlpha: 1, scale: 1, duration: 0.35, ease: "power3.out" }, 8.65);
+      click(9.25, "#field-pasta", "#rp-select");
+      tl.to("#ring-select", { autoAlpha: 0, duration: 0.2, ease: "power1.in" }, 9.3);
+      tl.fromTo("#pasta-focus", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.15, ease: "power1.out" }, 9.3);
+      tl.fromTo("#menu", { autoAlpha: 0, scaleY: 0.9, y: -6 }, { autoAlpha: 1, scaleY: 1, y: 0, duration: 0.25, ease: "power2.out" }, 9.35);
+      moveCursor(P.option, 9.65, 0.5, "power2.inOut");
+      tl.fromTo("#opt-hover", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.15, ease: "power1.out" }, 10.05);
+      click(10.35, "#opt-1", "#rp-option");
+      tl.to("#menu", { autoAlpha: 0, duration: 0.18, ease: "power2.in" }, 10.55);
+      tl.to("#pasta-focus", { autoAlpha: 0, duration: 0.2, ease: "power1.in" }, 10.7);
+      moveCursor(P.done, 10.8, 0.6, "power2.inOut");
+      tl.fromTo("#ring-done", { autoAlpha: 0, scale: 1.1 }, { autoAlpha: 1, scale: 1, duration: 0.35, ease: "power3.out" }, 11.05);
+      click(11.65, "#btn-ok", "#rp-done");
+      tl.to("#ring-done", { autoAlpha: 0, duration: 0.2, ease: "power1.in" }, 11.7);
+      tl.to("#dialog", { autoAlpha: 0, scale: 0.97, duration: 0.25, ease: "power2.in" }, 11.9);
+
+      // 5 · passo 4 — Ctrl + Shift + B mostra a barra, e o FOCO-OS está lá
+      hideRow("#row-3", 12.25);
+      showRow("#row-4", 12.45, 1);
+      tl.to("#cam-outer", { scale: CAM_B.s, duration: 1.3, ease: "power3.inOut" }, 12.3);
+      tl.to("#cam-inner", { x: CAM_B.x, y: CAM_B.y, duration: 1.3, ease: "power3.inOut" }, 12.3);
+      moveCursor(P.rest, 12.4, 1.1, "sine.inOut");
+      tl.fromTo("#keys", { autoAlpha: 0, y: 24, scale: 0.94 }, { autoAlpha: 1, y: 0, scale: 1, duration: 0.45, ease: "back.out(1.5)" }, 13.45);
+      ["#key-ctrl", "#key-shift", "#key-b"].forEach(function (key, i) {
+        tl.to(key, { y: 5, backgroundColor: C.keyDown, duration: 0.1, ease: "power2.in" }, 13.95 + i * 0.16);
+      });
+      tl.to(["#key-ctrl", "#key-shift", "#key-b"], { y: 0, backgroundColor: C.keyUp, duration: 0.16, ease: "power2.out" }, 14.7);
+      tl.to("#bmbar", { y: 44, duration: 0.4, ease: "power2.out" }, 14.75);
+      tl.to("#page", { y: 44, duration: 0.4, ease: "power2.out" }, 14.75);
+      tl.fromTo("#bm-chip", { autoAlpha: 0, scale: 0.6 }, { autoAlpha: 1, scale: 1, duration: 0.5, ease: "back.out(1.7)" }, 15.0);
+      tl.fromTo("#bm-all", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4, ease: "power1.out" }, 15.05);
+      tl.fromTo("#ring-chip", { autoAlpha: 0, scale: 1.12 }, { autoAlpha: 1, scale: 1, duration: 0.4, ease: "power3.out" }, 15.3);
+      tl.to("#keys", { autoAlpha: 0, y: 16, duration: 0.3, ease: "power2.in" }, 15.6);
+
+      // 6 · é só clicar em FOCO-OS na barra
+      moveCursor(P.chip, 15.45, 0.8, "power2.inOut");
+      hideRow("#row-4", 15.75);
+      showRow("#row-5", 15.95);
+      tl.fromTo("#bm-hover", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.15, ease: "power1.out" }, 16.2);
+      click(16.8, "#bm-chip", "#rp-chip");
+      tl.to("#ring-chip", { autoAlpha: 0, duration: 0.2, ease: "power1.in" }, 16.85);
+
+      // 7 · fim — "Pronto!" com o selo âmbar (padrão do Aprenda)
+      tl.fromTo("#end", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.45, ease: "power2.inOut" }, 18.0);
+      tl.to(".band-eyebrow", { autoAlpha: 0, duration: 0.3, ease: "power1.in" }, 18.1);
+      tl.fromTo("#end-art", { scale: 0.92, x: 60 }, { scale: 1, x: 0, duration: 4.0, ease: "power1.out" }, 18.0);
+      tl.fromTo("#end-seal", { autoAlpha: 0, scale: 0.4 }, { autoAlpha: 1, scale: 1, duration: 0.55, ease: "back.out(1.8)" }, 18.35);
+      tl.fromTo("#end-check", { strokeDashoffset: 24 }, { strokeDashoffset: 0, duration: 0.45, ease: "power2.out" }, 18.6);
+      tl.fromTo("#end-title", { autoAlpha: 0, y: 46 }, { autoAlpha: 1, y: 0, duration: 0.6, ease: "power3.out" }, 18.55);
+      tl.fromTo("#end-sub", { autoAlpha: 0, y: 22 }, { autoAlpha: 1, y: 0, duration: 0.5, ease: "power2.out" }, 18.85);
+      tl.fromTo("#end-lockup", { autoAlpha: 0, x: -20 }, { autoAlpha: 1, x: 0, duration: 0.6, ease: "expo.out" }, 19.1);
+
+      // por baixo do fim, tudo volta ao quadro 0
+      tl.set(["#browser", "#cursor", "#row-5"], { autoAlpha: 0 }, 18.8);
+      tl.set("#band-fill", { scaleX: 0 }, 18.8);
+
+      tl.to(["#end-seal", "#end-title", "#end-sub", "#end-lockup"], { autoAlpha: 0, y: -12, duration: 0.3, ease: "power2.in", stagger: 0.04 }, 21.55);
+      tl.to("#end", { autoAlpha: 0, duration: 0.45, ease: "power2.inOut" }, 21.9);
+      tl.to(".band-eyebrow", { autoAlpha: 1, duration: 0.4, ease: "power1.out" }, 21.95);
+
+      window.__timelines["lista-favoritos"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

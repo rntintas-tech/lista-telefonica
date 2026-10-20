@@ -1,98 +1,21 @@
 # Lista Telefônica - RN Tintas
 
-Sistema web de lista telefônica interna para facilitar a comunicação entre colaboradores da RN Tintas.
+A Lista Telefônica agora fica dentro do FOCO-OS: https://rntintas.foco-os.com/lista-telefonica/
 
-## 📋 Sobre o Projeto
+Este repositório não guarda mais a lista. O GitHub Pages (pasta `docs/` da `main`) serve apenas um
+aviso com o botão para abrir a Lista no FOCO-OS e um tutorial animado que ensina a salvar o FOCO-OS
+nos favoritos do Chrome. O app desktop (`desktop/app.py`) abre essa mesma página, então os
+computadores que já têm o app instalado passam a mostrar o aviso sem precisar reinstalar nada.
 
-Este projeto é uma aplicação web responsiva que exibe a lista telefônica interna da empresa, organizada por departamentos. Os dados são carregados dinamicamente de uma planilha Google Sheets, permitindo fácil atualização sem necessidade de modificar código.
+## Estrutura
 
-## ✨ Funcionalidades
+- `docs/index.html` — o aviso. Não usa CDN: fontes, imagens e o GSAP ficam em `docs/tutorial/assets/`.
+- `docs/tutorial/index.html` — o tutorial, uma composição HyperFrames (GSAP) de 22,5 s em 1600×1000.
+  A página carrega esse arquivo num iframe e avança a timeline ao vivo, sincronizando os 4 passos.
+  A lista que aparece dentro do Chrome usa dados inventados.
+- `docs/assets/` — logo da RN e a marca do FOCO-OS usadas no topo do aviso.
+- `desktop/` — app desktop (pywebview 5.1) que abre a URL do GitHub Pages. O botão do aviso usa
+  `target="_blank"`, que o pywebview abre no navegador padrão do computador.
 
-- 🔍 **Busca em tempo real** - Pesquise por nome, departamento ou telefone
-- 📱 **Design responsivo** - Funciona perfeitamente em desktop e mobile
-- 📞 **Ações rápidas** - Copiar número, ligar diretamente (mobile) ou abrir WhatsApp
-- 📧 **Informações completas** - Visualize e-mail e atribuições de cada contato
-- 🎨 **Interface moderna** - Design limpo com animações suaves
-- 📊 **Organização por departamento** - Contatos agrupados de forma intuitiva
-
-## 🚀 Tecnologias Utilizadas
-
-- HTML5
-- CSS3 (com variáveis CSS e animações)
-- JavaScript Vanilla
-- Google Sheets API
-- Bootstrap Icons
-
-## 🎯 Recursos Implementados
-
-### Interface de Usuário
-
-- Header com logo e legenda de ícones
-- Campo de busca com contador de resultados
-- Cards de departamento com expansão/recolhimento
-- Modal de informações detalhadas
-- Toast notifications para feedback ao usuário
-- Loading state durante carregamento de dados
-
-### Funcionalidades de Contato
-
-- **Botão Info**: Exibe modal com atribuições e e-mail
-- **Botão E-mail**: Abre cliente de e-mail com destinatário pré-preenchido
-- **Botão Copiar/Ligar**:
-  - Desktop: Copia número para área de transferência
-  - Mobile: Inicia ligação telefônica
-- **Botão WhatsApp**: Abre conversa no WhatsApp Web/App
-
-### Otimizações
-
-- Busca otimizada com debounce
-- Feedback visual em todas as interações
-- Ordenação automática de departamentos
-- Tratamento de erros de carregamento
-
-## 📂 Estrutura do Projeto
-
-```
-lista-telefonica/
-│
-├── index.html          # Estrutura HTML principal
-├── styles.css          # Estilos e animações
-├── scripts.js          # Lógica da aplicação
-└── README.md           # Este arquivo
-```
-
-## 📊 Formato da Planilha
-
-A planilha deve conter as seguintes colunas:
-
-- Nome
-- Telefone/Ramal
-- Departamento
-- Atribuições
-- E-mail
-- Ordem (para ordenação dos grupos)
-
-## 🎨 Personalização
-
-As cores e estilos podem ser facilmente personalizados através das variáveis CSS no arquivo `styles.css`:
-
-```css
-:root {
-    --primary-color: #001564;
-    --accent-color: #ff6b35;
-    /* ... outras variáveis */
-}
-```
-
-## 📱 Compatibilidade
-
-- ✅ Chrome/Edge (versões recentes)
-- ✅ Firefox (versões recentes)
-- ✅ Safari (versões recentes)
-- ✅ Dispositivos móveis (iOS/Android)
-
-## 📄 Licença
-
-Este projeto é de uso interno da RN Tintas.
-
-Desenvolvido para RN Tintas - 2025
+Para ver localmente, sirva a pasta `docs/` (por exemplo `python -m http.server --directory docs`).
+Aberto direto como arquivo, o navegador bloqueia o acesso ao iframe e a animação fica parada.

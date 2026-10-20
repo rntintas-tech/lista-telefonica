@@ -1,234 +1,452 @@
-<!DOCTYPE html>
+<!doctype html>
+<!--
+  Aviso que substitui a Lista Telefônica antiga (GitHub Pages /docs e app desktop pywebview,
+  que abre esta mesma URL). A lista agora vive em https://rntintas.foco-os.com/lista-telefonica/.
+
+  - O botão usa target="_blank": no app desktop (pywebview 5.x, OPEN_EXTERNAL_LINKS_IN_BROWSER
+    ligado por padrão) ele abre o navegador do computador; num navegador, abre uma aba nova.
+  - O tutorial (salvar o FOCO-OS nos favoritos) é a composição HyperFrames em tutorial/index.html, rodando ao vivo num iframe:
+    esta página só avança a timeline pausada dela (mesma origem) e sincroniza os passos.
+  - Sem CDN: fontes, imagens e GSAP vêm de tutorial/assets/.
+-->
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista Telefônica — RN Tintas</title>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>A Lista Telefônica agora fica no FOCO-OS | RN Tintas</title>
+    <meta name="description" content="A Lista Telefônica da RN Tintas mudou para o FOCO-OS. Abra no navegador e salve nos favoritos do Chrome." />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#050e33" />
+    <link rel="icon" type="image/png" href="tutorial/assets/img/foco-favicon.png" />
+    <link rel="preload" href="tutorial/assets/fonts/general-sans-600.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="tutorial/assets/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <style>
+      @font-face { font-family: "Inter"; font-weight: 100 900; font-display: swap; src: url("tutorial/assets/fonts/inter-latin.woff2") format("woff2"); }
+      @font-face { font-family: "General Sans"; font-weight: 600; font-display: swap; src: url("tutorial/assets/fonts/general-sans-600.woff2") format("woff2"); }
+      @font-face { font-family: "General Sans"; font-weight: 700; font-display: swap; src: url("tutorial/assets/fonts/general-sans-700.woff2") format("woff2"); }
+      @font-face { font-family: "JetBrains Mono"; font-weight: 400 800; font-display: swap; src: url("tutorial/assets/fonts/jetbrains-mono-latin.woff2") format("woff2"); }
 
-    <script src="https://cdn.tailwindcss.com"></script>
+      /* Tokens do FOCO-OS (foco-os/static/css/foco-ds.css) */
+      :root {
+        --navy-950: #050e33; --navy-900: #091853; --navy-700: #172e8c;
+        --orange-600: #e65705; --orange-500: #ff790b; --orange-400: #ff9538; --orange-300: #ffb36b;
+        --amber-light: #fbbb44;
+        --ink: #f8f9fb; --ink-2: rgba(248, 249, 251, 0.8); --ink-3: rgba(248, 249, 251, 0.66);
+        --line: rgba(255, 255, 255, 0.14);
+        --surface: rgba(9, 24, 83, 0.84);
+        --font-display: "General Sans", "Inter", system-ui, sans-serif;
+        --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        --font-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+        --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      html { -webkit-text-size-adjust: 100%; }
+      body {
+        min-height: 100vh; min-height: 100dvh; overflow-x: hidden;
+        background: var(--navy-950); color: var(--ink);
+        font: 400 16px/1.55 var(--font-body); -webkit-font-smoothing: antialiased;
+      }
+      a { color: inherit; }
+      button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+      img, svg { display: block; }
+      :focus-visible { outline: 3px solid var(--orange-300); outline-offset: 3px; border-radius: 10px; }
+      .ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+      /* Fundo do FOCO-OS: campo navy, luz azul e laranja e os anéis da marca bem de leve */
+      .canvas {
+        position: fixed; inset: 0; z-index: -1; overflow: hidden;
+        background: radial-gradient(120% 90% at 8% 0%, var(--navy-700) 0%, var(--navy-900) 46%, var(--navy-950) 100%);
+      }
+      .canvas::before, .canvas::after { content: ""; position: absolute; border-radius: 50%; }
+      .canvas::before { width: 70vmax; height: 70vmax; left: -26vmax; top: -36vmax; background: radial-gradient(circle, rgba(86, 112, 215, 0.34), transparent 65%); }
+      .canvas::after { width: 62vmax; height: 62vmax; right: -24vmax; bottom: -32vmax; background: radial-gradient(circle, rgba(255, 121, 11, 0.24), transparent 65%); }
+      .canvas img { position: absolute; width: min(82vmax, 1150px); height: auto; right: -16vmax; bottom: -34vmax; opacity: 0.06; }
+
+      .page {
+        max-width: 1280px; margin: 0 auto; padding: 26px 40px 32px;
+        min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column;
+      }
+
+      /* Topo: marca do FOCO-OS e da RN */
+      .top { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+      .brand { display: flex; align-items: center; gap: 14px; }
+      .mark { position: relative; width: 56px; height: 52px; flex: none; }
+      .mark img { position: absolute; inset: 0; width: 100%; height: 100%; }
+      .wm { font: 600 32px/1 var(--font-display); letter-spacing: -0.02em; white-space: nowrap; }
+      .wm-dot { font-family: var(--font-mono); font-weight: 500; color: var(--orange-500); margin: 0 1px; }
+      .wm-os { font-family: var(--font-mono); font-weight: 500; font-size: 0.85em; letter-spacing: 0.06em; }
+      .rn { width: auto; height: 46px; opacity: 0.92; }
+
+      .main {
+        flex: 1; display: grid; align-items: center; gap: 48px; padding-top: 24px;
+        grid-template-columns: minmax(320px, 480px) minmax(0, 1fr);
+      }
+
+      /* Coluna do aviso */
+      .intro h1 { font: 600 clamp(34px, 3.9vw, 52px)/1.04 var(--font-display); letter-spacing: -0.025em; text-wrap: balance; }
+      .lead { margin-top: 18px; max-width: 40ch; font-size: 18px; color: var(--ink-2); }
+      .cta {
+        margin-top: 30px; display: inline-flex; align-items: center; gap: 12px;
+        padding: 18px 24px 18px 26px; border-radius: 14px; text-decoration: none;
+        background: linear-gradient(135deg, var(--orange-500) 0%, var(--orange-600) 100%);
+        color: var(--navy-950); font: 600 19px/1 var(--font-body);
+        box-shadow: 0 16px 36px -12px rgba(255, 121, 11, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+        transition: transform 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out);
+      }
+      .cta:hover { transform: translateY(-2px); box-shadow: 0 22px 44px -12px rgba(255, 121, 11, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.25); }
+      .cta:active { transform: translateY(0); }
+      .cta .ic { width: 20px; height: 20px; stroke-width: 2.4; }
+      .cta-note { margin-top: 12px; font-size: 15px; color: var(--ink-3); }
+
+      .address { margin-top: 30px; padding-top: 22px; border-top: 1px solid var(--line); }
+      .address-label { font-size: 14px; font-weight: 600; color: var(--ink-2); }
+      .address-row {
+        margin-top: 8px; display: flex; align-items: center; gap: 12px; padding: 8px 8px 8px 16px;
+        border-radius: 12px; border: 1px solid var(--line); background: rgba(5, 14, 51, 0.55);
+      }
+      .address-url { flex: 1; min-width: 0; font: 500 15px/1.3 var(--font-mono); color: var(--ink); overflow-wrap: anywhere; }
+      .copy {
+        flex: none; display: inline-flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 9px;
+        border: 1px solid var(--line); font-size: 14px; font-weight: 600; color: var(--ink-2);
+        transition: background 0.2s, color 0.2s, border-color 0.2s;
+      }
+      .copy:hover { background: rgba(255, 255, 255, 0.07); color: var(--ink); border-color: rgba(255, 255, 255, 0.28); }
+      .copy .ic { width: 16px; height: 16px; }
+      .address-note { margin-top: 10px; font-size: 14px; color: var(--ink-3); max-width: 44ch; }
+      .help { margin-top: 22px; font-size: 15px; color: var(--ink-3); }
+      .help a { color: var(--ink); font-weight: 600; text-decoration-color: var(--orange-400); text-underline-offset: 3px; text-decoration-thickness: 2px; }
+      .help a:hover { color: var(--orange-300); }
+
+      /* Cartão do tutorial */
+      .tutorial {
+        padding: 18px; border-radius: 22px; background: var(--surface); border: 1px solid var(--line);
+        box-shadow: 0 30px 80px -24px rgba(0, 0, 0, 0.6);
+        /* sem backdrop-filter: ele vira o bloco de contenção do .player fixo e prende o "Ver maior" atrás do fundo */
+      }
+      .tutorial-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 2px 4px 14px; }
+      .tutorial-head h2 { font: 600 21px/1.2 var(--font-display); letter-spacing: -0.01em; }
+      .tutorial-head p { margin-top: 4px; font-size: 14.5px; color: var(--ink-3); }
+      .controls { display: flex; gap: 8px; }
+      .ctrl {
+        width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center;
+        border: 1px solid var(--line); color: var(--ink-2); transition: background 0.2s, color 0.2s;
+      }
+      .ctrl:hover { background: rgba(255, 255, 255, 0.08); color: var(--ink); }
+      .ctrl .ic { width: 18px; height: 18px; }
+      .ctrl .when-paused { display: none; }
+      .ctrl[aria-pressed="true"] .when-paused { display: block; }
+      .ctrl[aria-pressed="true"] .when-playing { display: none; }
+
+      .player { position: relative; aspect-ratio: 16 / 10; border-radius: 14px; overflow: hidden; background: var(--navy-950); box-shadow: inset 0 0 0 1px var(--line); }
+      .player iframe { position: absolute; left: 0; top: 0; width: 1600px; height: 1000px; border: 0; transform-origin: 0 0; pointer-events: none; }
+      .player-close {
+        position: absolute; top: 14px; right: 14px; z-index: 2; width: 46px; height: 46px; border-radius: 50%;
+        display: none; place-items: center; background: rgba(5, 14, 51, 0.85); border: 1px solid var(--line); color: var(--ink);
+      }
+      .player.is-expanded {
+        position: fixed; z-index: 60; inset: 0; margin: auto;
+        width: min(94vw, 144vh); height: calc(min(94vw, 144vh) / 1.6);
+        border-radius: 18px; box-shadow: 0 40px 120px rgba(0, 0, 0, 0.7);
+      }
+      .player.is-expanded .player-close { display: grid; }
+      .backdrop { position: fixed; inset: 0; z-index: 55; background: rgba(5, 14, 51, 0.86); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+      .backdrop[hidden] { display: none; }
+
+      .steps { list-style: none; margin-top: 12px; display: grid; gap: 4px; }
+      .step {
+        width: 100%; display: flex; align-items: center; gap: 12px; padding: 9px 12px; text-align: left;
+        border-radius: 12px; border: 1px solid transparent; color: var(--ink-3); font-size: 14px; line-height: 1.45;
+        transition: background 0.3s, color 0.3s, border-color 0.3s;
+      }
+      .step:hover { color: var(--ink-2); }
+      .step-num {
+        flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center;
+        font: 700 14px/1 var(--font-display); background: rgba(255, 255, 255, 0.1); color: var(--ink-2);
+        transition: background 0.3s, color 0.3s;
+      }
+      .step b { font-weight: 600; color: var(--ink-2); }
+      .step kbd {
+        display: inline-block; padding: 2px 6px; border-radius: 6px; white-space: nowrap;
+        font: 600 12.5px/1.3 var(--font-body); background: rgba(255, 255, 255, 0.14); color: var(--ink);
+        box-shadow: inset 0 -2px 0 rgba(255, 255, 255, 0.12);
+      }
+      .step .star { display: inline-block; width: 15px; height: 15px; vertical-align: -2px; color: var(--orange-300); }
+      .steps li.is-done .step-num { background: var(--amber-light); color: var(--navy-950); }
+      .steps li[aria-current="step"] .step { background: rgba(255, 255, 255, 0.06); border-color: var(--line); color: var(--ink); }
+      .steps li[aria-current="step"] .step b { color: var(--ink); }
+      .steps li[aria-current="step"] .step-num { background: var(--orange-400); color: var(--navy-950); }
+
+      .toast {
+        position: fixed; left: 50%; bottom: 28px; z-index: 70; pointer-events: none;
+        padding: 12px 18px; border-radius: 12px; background: var(--ink); color: var(--navy-950);
+        font: 600 15px/1 var(--font-body); box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+        opacity: 0; transform: translate(-50%, 16px); transition: opacity 0.2s, transform 0.2s var(--ease-out);
+      }
+      .toast.is-on { opacity: 1; transform: translate(-50%, 0); }
+
+      /* Um único momento de entrada: a seta laranja entra no alvo e o conteúdo aparece */
+      @media (prefers-reduced-motion: no-preference) {
+        .mark-rings { animation: rings-in 0.7s var(--ease-out) both; }
+        .mark-chevron { animation: chevron-in 0.8s var(--ease-out) 0.15s both; }
+        .main { animation: fade-in 0.6s ease 0.35s backwards; }
+      }
+      @keyframes rings-in { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: none; } }
+      @keyframes chevron-in { from { opacity: 0; transform: translateX(-60%); } to { opacity: 1; transform: none; } }
+      @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+      /* Janelas menores: o tutorial desce para baixo do aviso */
+      @media (max-width: 1000px) {
+        .main { grid-template-columns: minmax(0, 1fr); gap: 36px; align-items: start; padding-top: 32px; }
+        .intro { max-width: 640px; }
+      }
+      @media (max-width: 560px) {
+        .page { padding: 18px 16px 28px; }
+        .mark { width: 44px; height: 41px; }
+        .wm { font-size: 26px; }
+        .rn { height: 36px; }
+        .lead { font-size: 17px; }
+        .cta { display: flex; justify-content: center; width: 100%; }
+        .tutorial { padding: 12px; border-radius: 18px; }
+        .tutorial-head h2 { font-size: 19px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="canvas" aria-hidden="true"><img src="tutorial/assets/img/foco-rings-1200.png" alt="" /></div>
+
+    <div class="page">
+      <header class="top">
+        <div class="brand" role="img" aria-label="FOCO-OS">
+          <span class="mark" aria-hidden="true">
+            <img class="mark-rings" src="assets/foco-rings-168.png" alt="" />
+            <img class="mark-chevron" src="assets/foco-chevron-168.png" alt="" />
+          </span>
+          <span class="wm" aria-hidden="true">foco<span class="wm-dot">·</span><span class="wm-os">OS</span></span>
+        </div>
+        <img class="rn" src="assets/rn-logo-white.png" alt="RN Tintas" width="134" height="104" />
+      </header>
+
+      <main class="main">
+        <section class="intro" aria-labelledby="titulo">
+          <h1 id="titulo">A Lista Telefônica mudou de endereço</h1>
+          <p class="lead">Os ramais e os contatos de todos os setores agora ficam dentro do FOCO-OS. Esta lista antiga foi desativada e não recebe mais atualizações.</p>
+
+          <a class="cta" href="https://rntintas.foco-os.com/lista-telefonica/" target="_blank" rel="noopener">
+            Abrir a Lista no FOCO-OS
+            <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6" /><path d="M20 4 10 14" /><path d="M19 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4" /></svg>
+          </a>
+          <p class="cta-note">Para entrar, use o seu CPF e a sua senha do FOCO-OS.</p>
+
+          <div class="address">
+            <span class="address-label">Novo endereço</span>
+            <div class="address-row">
+              <span class="address-url" id="endereco">rntintas.foco-os.com/lista-telefonica</span>
+              <button class="copy" id="copiar" type="button" aria-label="Copiar o novo endereço">
+                <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
+                Copiar
+              </button>
+            </div>
+            <p class="address-note">Se o botão abrir outro navegador, copie o endereço e cole no Chrome.</p>
+          </div>
+
+          <p class="help">
+            Não conseguiu entrar?
+            <a href="https://wa.me/553521053035?text=Ol%C3%A1%21%20Preciso%20de%20ajuda%20para%20acessar%20a%20Lista%20Telef%C3%B4nica%20no%20FOCO-OS." target="_blank" rel="noopener">Fale com a Inovação pelo WhatsApp</a>.
+          </p>
+        </section>
+
+        <section class="tutorial" aria-labelledby="tutorial-titulo">
+          <div class="tutorial-head">
+            <div>
+              <h2 id="tutorial-titulo">Salve o FOCO-OS nos favoritos do Chrome</h2>
+              <p>Depois de abrir a Lista no Chrome, faça isso uma vez.</p>
+            </div>
+            <div class="controls">
+              <button class="ctrl" id="pausar" type="button" aria-pressed="false" aria-label="Pausar animação">
+                <svg class="ic when-playing" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5v14M15 5v14" /></svg>
+                <svg class="ic when-paused" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z" /></svg>
+              </button>
+              <button class="ctrl" id="ampliar" type="button" aria-label="Ver animação maior">
+                <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" /></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="player" id="player">
+            <iframe id="animacao" src="tutorial/index.html" title="Animação: como salvar o FOCO-OS nos favoritos do Chrome" tabindex="-1" aria-hidden="true" scrolling="no"></iframe>
+            <button class="player-close" id="fechar" type="button" aria-label="Fechar animação ampliada">
+              <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg>
+            </button>
+          </div>
+
+          <ol class="steps" id="passos">
+            <li>
+              <button class="step" type="button" data-at="1.0">
+                <span class="step-num">1</span>
+                <span>Clique na estrela <svg class="ic star" viewBox="0 0 24 24" aria-label="estrela" role="img"><path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6L12 17l-5.4 2.8 1-6L3.2 9.4l6.1-.9z" /></svg> no fim da barra de endereço ou aperte <kbd>Ctrl</kbd> + <kbd>D</kbd>.</span>
+              </button>
+            </li>
+            <li>
+              <button class="step" type="button" data-at="5.4">
+                <span class="step-num">2</span>
+                <span>Em <b>Nome</b>, escreva <b>FOCO-OS</b>.</span>
+              </button>
+            </li>
+            <li>
+              <button class="step" type="button" data-at="8.15">
+                <span class="step-num">3</span>
+                <span>Em <b>Pasta</b>, escolha <b>Barra de favoritos</b> e clique em <b>Concluído</b>.</span>
+              </button>
+            </li>
+            <li>
+              <button class="step" type="button" data-at="12.35">
+                <span class="step-num">4</span>
+                <span>Se a barra de favoritos não aparecer, aperte <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>B</kbd>.</span>
+              </button>
+            </li>
+          </ol>
+        </section>
+      </main>
+    </div>
+
+    <div class="backdrop" id="fundo-ampliado" hidden></div>
+    <div class="toast" id="aviso" role="status" aria-live="polite"></div>
+
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        navy:   { DEFAULT: '#001564', dark: '#000d3a', mid: '#002080' },
-                        sky:    { DEFAULT: '#0088cc' },
-                        rn:     { orange: '#ff6b35', alarm: '#c0392b' },
-                    },
-                    fontFamily: {
-                        sans:    ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'],
-                        heading: ['"Barlow Condensed"', 'sans-serif'],
-                        mono:    ['"JetBrains Mono"', 'monospace'],
-                    }
-                }
-            }
+      (function () {
+        "use strict";
+
+        // ---- Copiar o endereço ----
+        var URL_LISTA = "https://rntintas.foco-os.com/lista-telefonica/";
+        var toast = document.getElementById("aviso");
+        var toastTimer = null;
+        function avisar(texto) {
+          toast.textContent = texto;
+          toast.classList.add("is-on");
+          clearTimeout(toastTimer);
+          toastTimer = setTimeout(function () { toast.classList.remove("is-on"); }, 2200);
         }
+        function copiarFallback() {
+          var campo = document.createElement("textarea");
+          campo.value = URL_LISTA;
+          campo.setAttribute("readonly", "");
+          campo.style.position = "fixed";
+          campo.style.opacity = "0";
+          document.body.appendChild(campo);
+          campo.select();
+          var ok = false;
+          try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+          document.body.removeChild(campo);
+          avisar(ok ? "Link copiado" : "Não deu para copiar. Selecione o endereço e copie com Ctrl + C.");
+        }
+        document.getElementById("copiar").addEventListener("click", function () {
+          if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(URL_LISTA).then(function () { avisar("Link copiado"); }, copiarFallback);
+          } else {
+            copiarFallback();
+          }
+        });
+
+        // ---- Tutorial: avança a timeline pausada da composição HyperFrames ----
+        var DURACAO = 22.5; // data-duration da composição
+        var INICIO_PASSOS = [0, 5.4, 8.15, 12.35, 18.0]; // passos 1 a 4 e o "Pronto!"
+        var QUADRO_PARADO = 8.0; // a caixa "Favorito adicionado" já com FOCO-OS no nome
+
+        var player = document.getElementById("player");
+        var frame = document.getElementById("animacao");
+        var botaoPausar = document.getElementById("pausar");
+        var botaoAmpliar = document.getElementById("ampliar");
+        var botaoFechar = document.getElementById("fechar");
+        var fundoAmpliado = document.getElementById("fundo-ampliado");
+        var itens = Array.prototype.slice.call(document.querySelectorAll("#passos li"));
+        var reduzir = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        var tl = null;
+        var tocando = !reduzir;
+        var relogio = reduzir ? QUADRO_PARADO : 0;
+        var anterior = null;
+
+        function ajustarEscala() {
+          frame.style.transform = "scale(" + player.clientWidth / 1600 + ")";
+        }
+        if (window.ResizeObserver) new ResizeObserver(ajustarEscala).observe(player);
+        window.addEventListener("resize", ajustarEscala);
+        ajustarEscala();
+
+        function marcarPassos(t) {
+          var atual = 0;
+          while (atual < INICIO_PASSOS.length - 1 && t >= INICIO_PASSOS[atual + 1]) atual++;
+          itens.forEach(function (li, i) {
+            li.classList.toggle("is-done", i < atual);
+            if (i === atual) li.setAttribute("aria-current", "step");
+            else li.removeAttribute("aria-current");
+          });
+        }
+        function desenhar(t) {
+          if (tl) tl.seek(t, false);
+          marcarPassos(t);
+        }
+        function quadro(agora) {
+          if (!tocando) { anterior = null; return; }
+          if (anterior !== null) relogio = (relogio + (agora - anterior) / 1000) % DURACAO;
+          anterior = agora;
+          desenhar(relogio);
+          requestAnimationFrame(quadro);
+        }
+        function tocar() {
+          tocando = true;
+          botaoPausar.setAttribute("aria-pressed", "false");
+          botaoPausar.setAttribute("aria-label", "Pausar animação");
+          anterior = null;
+          requestAnimationFrame(quadro);
+        }
+        function pausar() {
+          tocando = false;
+          botaoPausar.setAttribute("aria-pressed", "true");
+          botaoPausar.setAttribute("aria-label", "Continuar animação");
+        }
+        botaoPausar.addEventListener("click", function () { tocando ? pausar() : tocar(); });
+
+        itens.forEach(function (li) {
+          li.querySelector(".step").addEventListener("click", function () {
+            relogio = parseFloat(this.getAttribute("data-at"));
+            desenhar(relogio);
+            if (!tocando) tocar();
+          });
+        });
+
+        frame.addEventListener("load", function () {
+          var janela;
+          try { janela = frame.contentWindow; tl = janela.__timelines && janela.__timelines["lista-favoritos"]; } catch (e) { tl = null; }
+          if (!tl) return; // sem a animação, os passos em texto continuam valendo
+          var fontes = janela.document.fonts && janela.document.fonts.ready ? janela.document.fonts.ready : Promise.resolve();
+          fontes.then(function () {
+            desenhar(relogio);
+            if (tocando) tocar(); else pausar();
+          });
+        });
+
+        // ---- Ver maior ----
+        function ampliar() {
+          player.classList.add("is-expanded");
+          fundoAmpliado.hidden = false;
+          ajustarEscala();
+          botaoFechar.focus();
+        }
+        function reduzirTamanho() {
+          player.classList.remove("is-expanded");
+          fundoAmpliado.hidden = true;
+          ajustarEscala();
+          botaoAmpliar.focus();
+        }
+        botaoAmpliar.addEventListener("click", ampliar);
+        botaoFechar.addEventListener("click", reduzirTamanho);
+        fundoAmpliado.addEventListener("click", reduzirTamanho);
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape" && player.classList.contains("is-expanded")) reduzirTamanho();
+        });
+      })();
     </script>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="styles.css">
-</head>
-
-<body class="font-sans antialiased">
-
-    <!-- ===== HEADER ===== -->
-    <header class="sticky top-0 z-[100] text-white px-7 py-5 header-bg">
-        <div class="max-w-[1440px] mx-auto grid gap-x-5"
-             style="grid-template-areas:'logo title' 'logo legend'; grid-template-columns: auto 1fr;">
-
-            <!-- Logo -->
-            <div style="grid-area:logo" class="flex items-center">
-                <div class="logo-img w-[72px] h-[72px]"></div>
-            </div>
-
-            <!-- Título -->
-            <div style="grid-area:title" class="self-end pb-1">
-                <h1 class="text-[1.85rem] font-black tracking-tight leading-none">Lista Telefônica</h1>
-                <p class="text-[0.7rem] font-medium tracking-[0.14em] uppercase mt-1.5 text-white/50">
-                    RN Tintas &middot; Comunicação Interna
-                </p>
-            </div>
-
-            <!-- Legenda -->
-            <div style="grid-area:legend" class="self-start pt-2.5 flex flex-wrap gap-2">
-                <span class="legend-chip">
-                    <i class="bi bi-info-circle-fill text-rn-orange"></i> Info
-                </span>
-                <span class="legend-chip">
-                    <i class="bi bi-envelope-fill" style="color:#a5b4fc;"></i> E-mail
-                </span>
-                <span class="legend-chip">
-                    <i class="bi bi-clipboard-fill text-white/80"></i> Copiar/Ligar
-                </span>
-                <span class="legend-chip">
-                    <i class="bi bi-whatsapp" style="color:#86efac;"></i> WhatsApp
-                </span>
-                <span class="legend-chip">
-                    <i class="bi bi-shield-lock-fill" style="color:#fca5a5;"></i> Alarme
-                </span>
-            </div>
-
-        </div>
-    </header>
-
-    <!-- ===== TUTORIAL BANNER (abaixo do header, dispensável) ===== -->
-    <div id="tutorial-banner" class="tutorial-banner">
-        <div class="tutorial-content">
-            <div class="tutorial-lamp">
-                <i class="bi bi-lightbulb-fill"></i>
-            </div>
-            <div class="tutorial-text">
-                <strong>Como usar:</strong>
-                Clique no botão
-                <span class="tutorial-dots-demo" aria-label="reticências">
-                    <span></span><span></span><span></span>
-                </span>
-                ao lado de cada contato para ver mais ações:
-                <span class="t-chip t-chip--info"><i class="bi bi-info-circle-fill"></i>Info</span>
-                <span class="t-chip t-chip--email"><i class="bi bi-envelope-fill"></i>E-mail</span>
-                <span class="t-chip t-chip--whats"><i class="bi bi-whatsapp"></i>WhatsApp</span>
-                <span class="t-chip t-chip--alarm"><i class="bi bi-shield-lock-fill"></i>Alarme</span>
-            </div>
-        </div>
-        <button class="tutorial-close" onclick="dispensarTutorial()" title="Entendi, fechar">
-            <i class="bi bi-x-lg"></i>
-        </button>
-    </div>
-
-    <!-- ===== CONTEÚDO PRINCIPAL ===== -->
-    <main class="main-area">
-        <div class="main-inner">
-
-            <!-- Campo de pesquisa -->
-            <div class="search-wrapper">
-                <div class="search-box">
-                    <i class="bi bi-search search-lead-icon"></i>
-                    <input
-                        type="text"
-                        id="searchInput"
-                        class="search-input"
-                        placeholder="Nome, departamento ou telefone…"
-                        autocomplete="off"
-                        spellcheck="false"
-                    >
-                    <button id="clearSearch" class="clear-btn" title="Limpar busca">
-                        <i class="bi bi-x"></i>
-                    </button>
-                </div>
-                <span id="resultsCount" class="results-badge font-mono">0 contatos</span>
-            </div>
-
-            <!-- Loading -->
-            <div id="loading" class="state-card">
-                <div class="spinner" aria-label="Carregando"></div>
-                <p class="text-sm text-slate-500 mt-4 font-medium">Carregando contatos…</p>
-            </div>
-
-            <!-- Erro (preenchido pelo scripts.js) -->
-            <div id="error" class="hidden"></div>
-
-            <!-- Sem resultados -->
-            <div id="noResults" class="hidden state-card">
-                <i class="bi bi-search text-4xl text-slate-300"></i>
-                <p class="text-sm text-slate-400 mt-3 font-medium">Nenhum contato encontrado</p>
-                <p class="text-xs text-slate-300 mt-1">Tente outro nome, departamento ou número</p>
-            </div>
-
-            <!-- Lista de contatos (gerada pelo scripts.js) -->
-            <div id="cardsContainer" class="list-container"></div>
-
-        </div>
-    </main>
-
-    <!-- ===== FOOTER ===== -->
-    <footer class="site-footer">
-        <a href="https://api.whatsapp.com/send?phone=553521053035&text=Olá%2C%20estou%20com%20um%20problema%20na%20lista%20telefônica."
-           class="footer-link" target="_blank" rel="noopener">
-            <i class="bi bi-question-circle"></i> Ajuda
-        </a>
-        <span class="text-white/20 font-mono text-xs">&copy; 2025 RN Tintas</span>
-    </footer>
-
-    <!-- ===== MODAL DE INFORMAÇÕES ===== -->
-    <div class="modal-overlay" id="modalAtribuicoes" onclick="fecharModal(event)">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <div class="modal-title">
-                    <i class="bi bi-person-lines-fill"></i>
-                    <span id="modalNome">Informações</span>
-                </div>
-                <button class="modal-close" onclick="fecharModal()">
-                    <i class="bi bi-x"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="modal-info">
-                    <div class="info-row">
-                        <i class="bi bi-telephone-fill info-icon"></i>
-                        <div class="info-content">
-                            <div class="info-label">Telefone</div>
-                            <div class="info-value font-mono" id="modalTelefone">-</div>
-                        </div>
-                    </div>
-                    <div class="info-row">
-                        <i class="bi bi-envelope-fill info-icon"></i>
-                        <div class="info-content">
-                            <div class="info-label">E-mail</div>
-                            <div class="info-value" id="modalEmail">-</div>
-                        </div>
-                    </div>
-                    <div class="info-row">
-                        <i class="bi bi-list-check info-icon"></i>
-                        <div class="info-content">
-                            <div class="info-label">Atribuições</div>
-                            <div class="info-value" id="modalAtribuicoesTexto">-</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ===== MODAL DE ALARME ===== -->
-    <div class="modal-overlay" id="modalAlarme" onclick="fecharModalAlarme(event)">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <div class="modal-header modal-header--alarme">
-                <div class="modal-title">
-                    <i class="bi bi-shield-lock-fill"></i>
-                    <div>
-                        <div>Contatos de Alarme</div>
-                        <div class="modal-subtitle" id="alarmeModalDept"></div>
-                    </div>
-                </div>
-                <button class="modal-close" onclick="fecharModalAlarme()">
-                    <i class="bi bi-x"></i>
-                </button>
-            </div>
-            <div class="modal-body" id="alarmeModalBody"></div>
-        </div>
-    </div>
-
-
-    <!-- ===== MODAL DE AÇÕES (botão ···) ===== -->
-    <div class="modal-overlay" id="modalAcoes" onclick="fecharModalAcoes(event)">
-        <div class="modal-content modal-acoes-content" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <div class="modal-title">
-                    <i class="bi bi-person-fill"></i>
-                    <span id="acoes-nome">Ações</span>
-                </div>
-                <button class="modal-close" onclick="fecharModalAcoes()">
-                    <i class="bi bi-x"></i>
-                </button>
-            </div>
-            <div class="modal-body" id="acoes-body"></div>
-        </div>
-    </div>
-
-
-    <script src="scripts.js"></script>
-</body>
+  </body>
 </html>
